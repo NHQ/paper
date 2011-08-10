@@ -17,25 +17,23 @@
 	
 	colorPicker = {
 		init: function(){
-			this.sbSelector();
-			//this.hueSelector();
-			//this.alphaSelector();
-			//this.mouseMove();
-			//this.mouseDown();
-			//this.mouseDrag();
-			//this.mouseUp();
+			this.Selector();
 		},
-		sbSelector : function(){
-			var layer = new Layer();
+		Selector : function(){
+		  this.group = new Group();
 			this.pal =  new HSBColor(110, 1, 1);
+			this.bg = [];
 			for (i=35;i>0;--i){
-				this.bg = new Path([0,0+(i*10)],[360,0+(i*10)]);
-				this.bg.strokeWidth = 5;
-				this.bg.strokeColor = "#fff"
+				this.bg[i] = new Path([3,(i*10)],[358,0+(i*10)]);
+				this.bg[i].strokeWidth = 5;
+				this.bg[i].strokeColor = "#c1c2c3";
+				this.group.addChild(this.bg[i])
 			}
-			this.sb = new Path.Rectangle(0, 0, 360, 360);
+			this.sb = new Path.Circle(180, 180, 180);
 			this.sb.fillColor = this.pal;
-			this.circ = new Path.Circle(360,360, 6);
+			//this.sb.strokeColor = "#fff"; 
+			//this.sb.strokeWidth = 3; 
+			this.circ = new Path.Circle(this.sb.position.x,this.sb.position.y,6);
 			this.circ.strokeColor = "black";
 			this.circ.strokeWidth = 3;
 			
@@ -57,11 +55,7 @@
 			this.tiny.fillColor= "white";
 			this.tiny.strokeColor = "#000";
 			
-			for (i=9;i>0;--i){
-				this.bgr = new Path([375+(i*5),0],[375+(i*5),360]);
-				this.bgr.strokeColor = "#fff"
-			}
-			this.as = new Path.Rectangle(375,0,50,360);
+			this.as = new Path.Rectangle(375,0,30,360);
 			this.palAlpha1 = this.pal.clone();
 			this.palAlphaZero = this.pal.clone();
 			this.palAlphaZero.alpha = 0;
@@ -69,44 +63,12 @@
 			var gradientColor = new GradientColor(gradient, this.as.bounds.topLeft,this.as.bounds.bottomLeft);
 			this.as.fillColor = gradientColor;
 			//layer.remove();
-			layer.selected = false;
-			layer.position = [500,500];
-			alert(layer.bounds)
+			this.group.addChildren([this.as, this.sb, this.hueSelect, this.tiny, this.circ]);
+			this.group.selected = false;
+			this.group.position = [view.bounds.right - 225,view.bounds.bottom - 225];
+			//alert(layer.bounds)
 			//this.picker = new Group([this.pal, this.sb, this.circ, this.hueSelect, this.as, this.palAlphaZero, this.palAlpha1]);
 			
-		},
-		hueSelector : function(){
-			var colors = [];
-			var cycles = 4;
-			for (var i = 0, l = 360; i < l; i++) {
-				var brightness = 1;
-				var hue = i;
-				var color = new HSBColor(hue, 1, brightness);
-				colors.push(color);
-			}
-		
-			hueSelect = new Path.Rectangle(0,375,360,30);
-			var gradient = new Gradient(colors);
-			var radius = Math.max(view.size.width, view.size.height) * 0.75;
-			var gradientColor = new GradientColor(gradient, hueSelect.bounds.bottomLeft,hueSelect.bounds.bottomRight);
-			hueSelect.fillColor = gradientColor;
-			
-			this.tiny = new Path.Circle([110, 390],3);
-			this.tiny.fillColor= "white";
-			this.tiny.strokeColor = "#000";
-		},
-		alphaSelector : function (){
-			for (i=9;i>0;--i){
-				var bgr = new Path([375+(i*5),0],[375+(i*5),360]);
-				bgr.strokeColor = "#fff"
-			}
-			this.as = new Path.Rectangle(375,0,50,360);
-			this.palAlpha1 = pal.clone();
-			this.palAlphaZero = pal.clone();
-			this.palAlphaZero.alpha = 0;
-			var gradient = new Gradient([[this.palAlphaZero],[this.palAlpha1,.67]]);
-			var gradientColor = new GradientColor(gradient, this.as.bounds.topLeft,this.as.bounds.bottomLeft);
-			this.as.fillColor = gradientColor;
 		},
 		mouseMove: {
 			hues : function (event){
@@ -144,11 +106,17 @@
 			line.strokeWidth = 7;
 			*/
 			if (this.sb.hitTest(event.point, {fill:true})){
-				this.sb.fillColor = this.pal;
-				this.sb.fillColor.saturation = event.point.y / 360 ;
-				this.sb.fillColor.brightness = event.point.x / 360;
-				this.pal.brightness = event.point.x / 360 ;
-				this.pal.saturation = event.point.y / 360 ;
+				this.circ.position = event.point;
+				var bright = (360 - Math.abs((event.point.x - this.sb.position.x)*2))/360;
+				var sat = (360 - Math.abs((event.point.y - this.sb.position.y)*2))/360;;
+				this.sb.fillColor.saturation = sat;
+				this.sb.fillColor.brightness =  bright;
+				this.pal.brightness = bright;
+				this.pal.saturation = sat;
+				this.palAlphaZero.saturation = sat;
+				this.palAlphaZero.brightness = bright;
+				this.palAlpha1.saturation = sat;
+				this.palAlpha1.brightness = bright;
 			}
 			if (this.hueSelect.hitTest(event.point, {fill:true})){
 				console.log(this);
@@ -186,21 +154,23 @@
 				this.palAlpha1.hue = (event.point.x - this.hueSelect.bounds.left);
 			}
 			if (this.as.hitTest(event.point, {fill:true})){
-				this.pal.alpha = event.point.y / 340;
-				this.sb.alpha = event.point.y / 360;
+				this.pal.alpha = (event.point.y - this.as.bounds.top) / 340;
+				this.sb.alpha = (event.point.y - this.sb.bounds.top) / 360;
 			//	this.this.palAlphaZero = 
 				//this.palAlpha1
 			}
 			if (this.sb.hitTest(event.point, {fill:true})){
 				this.circ.position = event.point;
-				this.sb.fillColor.saturation = event.point.y / 360;
-				this.sb.fillColor.brightness = event.point.x / 360;
-				this.pal.brightness = event.point.x / 360 ;
-				this.pal.saturation = event.point.y / 360 ;
-				this.palAlphaZero.saturation = event.point.y / 360;
-				this.palAlphaZero.brightness = event.point.x / 360;
-				this.palAlpha1.saturation = event.point.y / 360;
-				this.palAlpha1.brightness = event.point.x / 360;
+				var bright = (360 - Math.abs((event.point.x - this.sb.position.x)*2))/360;
+				var sat = (360 - Math.abs((event.point.y - this.sb.position.y)*2))/360;;
+				this.sb.fillColor.saturation = sat;
+				this.sb.fillColor.brightness =  bright;
+				this.pal.brightness = bright;
+				this.pal.saturation = sat;
+				this.palAlphaZero.saturation = sat;
+				this.palAlphaZero.brightness = bright;
+				this.palAlpha1.saturation = sat;
+				this.palAlpha1.brightness = bright;
 			}
 			
 			
