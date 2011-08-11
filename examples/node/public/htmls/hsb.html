@@ -15,7 +15,8 @@ window.onload = function(){
           str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
       return str;
   }
-  
+
+sinceLast = new Date().getTime();  
   
   paper.setup('canvas');
 	var lino = new Path([515,0],[515,500]);
@@ -125,6 +126,10 @@ window.onload = function(){
 //			this.add = new Path([[25,25],[25,10],[35,10],[25,35]]);
 		},
 		mouseUp: function (event){
+		  if( (new Date().getTime() - sinceLast) < 100){
+		    return
+		  }
+		  sinceLast = new Date().getTime();
 
 			/* If we produced a line before, deselect it:
 			if (line) {
