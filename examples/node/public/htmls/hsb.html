@@ -3,11 +3,24 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 	<title>HSLColor</title>
-	<link rel="stylesheet" href="../css/style.css">
 	<script type="text/javascript" src="../javascripts/paper.js"></script>
 	<script type="text/javascript" src="../javascripts/underscore-min.js"></script>
-	<script type="text/paperscript" canvas="canvas">
-
+	
+	<script type="text/javascript">
+paper.install(window);
+window.onload = function(){
+  function hex2a(hex) {
+      var str = '';
+      for (var i = 0; i < hex.length; i += 2)
+          str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+      return str;
+  }
+  
+  
+  paper.setup('canvas');
+	var lino = new Path([515,0],[515,500]);
+	lino.strokeWidth = 7;
+  lino.strokeColor = "#c1c2c3";
 	var point = view.center;
 	//pal = new HSBColor(110, 1, 1);
  	mouse = [];
@@ -18,10 +31,37 @@
 	colorPicker = {
 		init: function(){
 			this.Selector();
+			_.bindAll(colorPicker);
+			this.tool = new Tool();
+			this.tool.onMouseDrag = this.mouseDrag;
+			this.tool.onMouseDown = this.mouseDown;
+			this.tool.activate();
+		},
+		pallette : {
+		  set: function(color){
+		    if (color){
+		      this.get.unshift(color)
+		      this.set();
+		      return		      		        
+		      }
+		    this.swathii.remove();
+		    this.swathii = new Group();
+		    this.swath = [];
+		    for (var x in this.get){
+		      this.swath[x] = new Path.Circle(515,(x*53)+26,25);
+		      //this.swath[x].strokeColor = "#333";
+		      this.swath[x].fillColor = this.get[x];
+		      this.swathii.addChild(this.swath[x])
+		    }  
+		    //this.swathii.position = [550,0]
+		    },
+		  get: [],
+		  swathii: new Group(),
+		  swath:[]
 		},
 		Selector : function(){
 		  this.group = new Group();
-			this.pal =  new HSBColor(110, 1, 1);
+			this.pal =  new HSBColor(210, 1, 1);
 			this.bg = [];
 			for (i=35;i>0;--i){
 				this.bg[i] = new Path([3,(i*10)],[358,0+(i*10)]);
@@ -31,12 +71,9 @@
 			}
 			this.sb = new Path.Circle(180, 180, 180);
 			this.sb.fillColor = this.pal;
-			//this.sb.strokeColor = "#fff"; 
-			//this.sb.strokeWidth = 3; 
 			this.circ = new Path.Circle(this.sb.position.x,this.sb.position.y,6);
 			this.circ.strokeColor = "black";
 			this.circ.strokeWidth = 3;
-			
 			var colors = [];
 			var cycles = 4;
 			for (var i = 0, l = 360; i < l; i++) {
@@ -51,48 +88,42 @@
 			var gradientColor = new GradientColor(gradient, this.hueSelect.bounds.bottomLeft,this.hueSelect.bounds.bottomRight);
 			this.hueSelect.fillColor = gradientColor;
 			
-			this.tiny = new Path.Circle([110, 390],3);
+			this.tiny = new Path.Circle([210, 390],3);
 			this.tiny.fillColor= "white";
 			this.tiny.strokeColor = "#000";
 			
-			this.as = new Path.Rectangle(375,0,30,360);
+			this.as = new Path.Rectangle(375,-10,30,360);
 			this.palAlpha1 = this.pal.clone();
 			this.palAlphaZero = this.pal.clone();
 			this.palAlphaZero.alpha = 0;
-			var gradient = new Gradient([[this.palAlphaZero],[this.palAlpha1,.67]]);
+			var gradient = new Gradient([[this.palAlphaZero],[this.palAlpha1]]);
 			var gradientColor = new GradientColor(gradient, this.as.bounds.topLeft,this.as.bounds.bottomLeft);
 			this.as.fillColor = gradientColor;
-			//layer.remove();
-			this.group.addChildren([this.as, this.sb, this.hueSelect, this.tiny, this.circ]);
-			this.group.selected = false;
-			this.group.position = [view.bounds.right - 225,view.bounds.bottom - 225];
-			//alert(layer.bounds)
-			//this.picker = new Group([this.pal, this.sb, this.circ, this.hueSelect, this.as, this.palAlphaZero, this.palAlpha1]);
+			this.add = new PointText([367,410]);
+			this.add.content= "+";
+			this.add.characterStyle = {
+          fontSize: 60,
+      }
+      this.add.strokeJoin = 'round';
+			this.add.fillColor = "#000";
+			this.add.strokeColor = "#fff"
 			
+			this.addRect = new Path.Rectangle(new Point(367,365), new Size(48,48));
+			//var cornerSize = new Size(20, 20);
+			//this.addRect = new Path.RoundRectangle(aRex, cornerSize);
+			
+			this.addRect.strokeColor = "#fff";
+			this.addRect.fillColor = "#fff";
+			this.addRect.fillColor.alpha = 0;
+			
+			this.group.addChildren([this.as, this.sb, this.hueSelect, this.tiny, this.circ, this.add, this.addRect]);
+			this.group.selected = false;
+			this.group.position = [view.bounds.left + 225,view.bounds.bottom - 225];
+			
+			
+			
+//			this.add = new Path([[25,25],[25,10],[35,10],[25,35]]);
 		},
-		mouseMove: {
-			hues : function (event){
-				if (this.hueSelect.hitTest(event.point, {fill:true})){
-					console.log(this);
-					//this.sb = new Path.Rectangle(0, 0, 360, 360);
-					this.sb.fillColor = pal.clone();
-					this.pal.hue = (event.point.x - this.hueSelect.bounds.left);
-					this.sb.fillColor.hue = (event.point.x - this.hueSelect.bounds.left);
-					this.tiny.position.x = event.point.x
-					this.sb.fillColor.alpha = 1;
-				}},
-			sb: function (event){
-				if (this.sb.hitTest(event.point, {fill:true})){
-					//this.circ.position = event.point;
-					this.sb.fillColor.saturation = event.point.y / 360 ;
-					this.sb.fillColor.brightness = event.point.x / 360;
-				}
-				if (!this.sb.hitTest(event.point, {fill:true})){
-					//this.circ.position = event.point;
-				//	this.sb.fillColor.saturation = pal.saturation;
-					//this.sb.fillColor.brightness = pal.brightnes;
-				}
-			}},
 		mouseDown: function (event){
 
 			/* If we produced a line before, deselect it:
@@ -119,45 +150,40 @@
 				this.palAlpha1.brightness = bright;
 			}
 			if (this.hueSelect.hitTest(event.point, {fill:true})){
-				console.log(this);
-				//this.sb = new Path.Rectangle(0, 0, 360, 360);
 				this.sb.fillColor = this.pal.clone();
 				this.pal.hue = (event.point.x - this.hueSelect.bounds.left);
 				this.sb.fillColor.hue = (event.point.x - this.hueSelect.bounds.left);
 				this.tiny.position.x = event.point.x
-				//this.sb.fillColor.alpha = 1;
-				this.palAlphaZero.hue = (event.point.x - this.hueSelect.bounds.left);
-				this.palAlpha1.hue = (event.point.x - this.hueSelect.bounds.left);
-			}
-			if (this.as.hitTest(event.point, {fill:true})){
-				this.pal.alpha = event.point.y / 360;
-				this.sb.alpha = event.point.y / 360;
-			//	this.this.palAlphaZero = 
-				//this.palAlpha1
-			}
-			
-		},
-
-		mouseDrag : function (event) {
-			//line.add(event.point);
-			
-			// S/B
-			if (this.hueSelect.hitTest(event.point, {fill:true})){
-				console.log(this);
-				//this.sb = new Path.Rectangle(0, 0, 360, 360);
-				this.sb.fillColor = this.pal.clone();
-				this.pal.hue = (event.point.x - this.hueSelect.bounds.left);
-				this.sb.fillColor.hue = (event.point.x - this.hueSelect.bounds.left);
-				this.tiny.position.x = event.point.x
-				//this.sb.fillColor.alpha = 1;
 				this.palAlphaZero.hue = (event.point.x - this.hueSelect.bounds.left);
 				this.palAlpha1.hue = (event.point.x - this.hueSelect.bounds.left);
 			}
 			if (this.as.hitTest(event.point, {fill:true})){
 				this.pal.alpha = (event.point.y - this.as.bounds.top) / 340;
 				this.sb.alpha = (event.point.y - this.sb.bounds.top) / 360;
-			//	this.this.palAlphaZero = 
-				//this.palAlpha1
+			}
+			if(this.addRect.hitTest(event.point, {fill:true})){
+			  this.pallette.set(this.pal.clone());
+			  console.log(this.pallette)
+			}
+			if(this.pallette.swathii.hitTest(event.point, {fill:true})){
+			  console.log(this.pallette.swathii.hitTest(event.point, {fill:true}).item.fillColor.alpha);
+			  //this.pallette.swathii.hitTest(event.point, {fill:true}).item.fillColor.alpha = .1;
+			}
+		},
+
+		mouseDrag : function (event) {			
+			// S/B
+			if (this.hueSelect.hitTest(event.point, {fill:true})){
+				this.sb.fillColor = this.pal.clone();
+				this.pal.hue = (event.point.x - this.hueSelect.bounds.left);
+				this.sb.fillColor.hue = (event.point.x - this.hueSelect.bounds.left);
+				this.tiny.position.x = event.point.x
+				this.palAlphaZero.hue = (event.point.x - this.hueSelect.bounds.left);
+				this.palAlpha1.hue = (event.point.x - this.hueSelect.bounds.left);
+			}
+			if (this.as.hitTest(event.point, {fill:true})){
+				this.pal.alpha = (event.point.y - this.as.bounds.top) / 340;
+				this.sb.alpha = (event.point.y - this.sb.bounds.top) / 360;
 			}
 			if (this.sb.hitTest(event.point, {fill:true})){
 				this.circ.position = event.point;
@@ -172,8 +198,10 @@
 				this.palAlpha1.saturation = sat;
 				this.palAlpha1.brightness = bright;
 			}
-			
-			
+			if(this.add.hitTest(event.point, {stroke:true})){
+			  this.pallette.push(this.pal);
+			  console.log(this.pallette)
+			}
 		},
 
 		mouseUp: function (event) {
@@ -194,33 +222,19 @@
 			*/
 		}
 	};
-_.bindAll(colorPicker);
-colorPicker.mouseMove.hues = _.bind(colorPicker.mouseMove.hues, colorPicker)
-colorPicker.mouseMove.sb = _.bind(colorPicker.mouseMove.sb, colorPicker)
 
 colorPicker.init();
-console.log(colorPicker.sb)
-/*
-function onMouseMove(event){
-	colorPicker.mouseMove.hues(event)
-	colorPicker.mouseMove.sb(event)
-}
-*/
-function onMouseDrag(event){
-	colorPicker.mouseDrag(event)
-}
-function onMouseDown(event){
-	colorPicker.mouseDown(event)
-}
-function onMouseUp(event){
-	colorPicker.mouseUp(event)
-}
-function onResize(event) {
-
-}
+ view.draw();
+};
 	</script>
+  <style>
+  body, canvas, .canvas{
+    background:#fff;
+  }
+  </style>
+
 </head>
 <body>
-	<canvas id="canvas" resize style="background:black"></canvas>
+	<canvas id="canvas" resize style="background:white"></canvas>
 </body>
 </html>
