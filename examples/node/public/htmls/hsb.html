@@ -126,11 +126,6 @@ sinceLast = new Date().getTime();
 //			this.add = new Path([[25,25],[25,10],[35,10],[25,35]]);
 		},
 		mouseUp: function (event){
-		  if( (new Date().getTime() - sinceLast) < 1000){
-		    return
-		  }
-		  sinceLast = new Date().getTime();
-
 			/* If we produced a line before, deselect it:
 			if (line) {
 				line.selected = false;
@@ -167,6 +162,10 @@ sinceLast = new Date().getTime();
 				this.sb.alpha = (event.point.y - this.sb.bounds.top) / 360;
 			}
 			if(this.addRect.hitTest(event.point, {fill:true})){
+			  if( (new Date().getTime() - sinceLast) < 500){
+  		    return
+  		  }
+  		  sinceLast = new Date().getTime();
 			  this.pallette.set(this.pal.clone());
 			  console.log(this.pallette)
 			}
