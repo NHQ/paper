@@ -34,7 +34,7 @@ window.onload = function(){
 			_.bindAll(colorPicker);
 			this.tool = new Tool();
 			this.tool.onMouseDrag = this.mouseDrag;
-			this.tool.onMouseDown = this.mouseDown;
+			this.tool.onMouseUp = this.mouseUp;
 			this.tool.activate();
 		},
 		pallette : {
@@ -124,7 +124,7 @@ window.onload = function(){
 			
 //			this.add = new Path([[25,25],[25,10],[35,10],[25,35]]);
 		},
-		mouseDown: function (event){
+		mouseUp: function (event){
 
 			/* If we produced a line before, deselect it:
 			if (line) {
@@ -202,29 +202,30 @@ window.onload = function(){
 			  this.pallette.push(this.pal);
 			  console.log(this.pallette)
 			}
-		},
-
-		mouseUp: function (event) {
-			/*
-			var segmentCount = line.segments.length;
-
-			// When the mouse is released, simplify it:
-			line.simplify(0);
-			//line.smooth();
-
-			// Select the line, so we can see its segments:
-			line.fullySelected = false;
-
-			var newSegmentCount = line.segments.length;
-			var difference = segmentCount - newSegmentCount;
-			var percentage = 100 - Math.round(newSegmentCount / segmentCount * 100);
-			//textItem.content = difference + ' of the ' + segmentCount + ' segments were removed. Saving ' + percentage + '%\n meanwhile, here is your line data: '+line.segments;
-			*/
 		}
 	};
 
 colorPicker.init();
  view.draw();
+		/* 
+ 	mouseUp: function (event) {
+
+		var segmentCount = line.segments.length;
+
+		// When the mouse is released, simplify it:
+		line.simplify(0);
+		//line.smooth();
+
+		// Select the line, so we can see its segments:
+		line.fullySelected = false;
+
+		var newSegmentCount = line.segments.length;
+		var difference = segmentCount - newSegmentCount;
+		var percentage = 100 - Math.round(newSegmentCount / segmentCount * 100);
+		//textItem.content = difference + ' of the ' + segmentCount + ' segments were removed. Saving ' + percentage + '%\n meanwhile, here is your line data: '+line.segments;
+
+	}
+ 		*/
 };
 	</script>
   <style>
