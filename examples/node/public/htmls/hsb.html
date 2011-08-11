@@ -2,10 +2,11 @@
 <html>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<meta name="apple-mobile-web-app-capable" content="yes">
 	<title>HSLColor</title>
 	<script type="text/javascript" src="../javascripts/paper.js"></script>
 	<script type="text/javascript" src="../javascripts/underscore-min.js"></script>
-	
+	<script type="text/javascript" src="../javascripts/store.js"></script>
 	<script type="text/javascript">
 paper.install(window);
 window.onload = function(){
@@ -15,7 +16,7 @@ window.onload = function(){
           str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
       return str;
   }
-
+colz = store.get('colors');
 sinceLast = new Date().getTime();  
   
   paper.setup('canvas');
@@ -37,11 +38,25 @@ sinceLast = new Date().getTime();
 			this.tool.onMouseDrag = this.mouseDrag;
 			this.tool.onMouseUp = this.mouseUp;
 			this.tool.activate();
+			this.pallette.store();
 		},
 		pallette : {
+		  store: function(){
+		    var cors = store.get('colors');
+		    poop = [];
+		    _.each(cors, function(e){
+		      var c = new HSBColor(e[0],e[1],e[2],e[3]);
+		      poop.push(c);
+		    })
+		    this.get = poop;
+		    this.set();
+		  },
 		  set: function(color){
 		    if (color){
-		      this.get.unshift(color)
+		      this.get.unshift(color);
+		      store.set('colors', _.map(this.get, function(obj){
+		        return [obj.hue, obj.saturation, obj.brightness, obj.alpha]
+		      }));
 		      this.set();
 		      return		      		        
 		      }
@@ -49,7 +64,7 @@ sinceLast = new Date().getTime();
 		    this.swathii = new Group();
 		    this.swath = [];
 		    for (var x in this.get){
-		      this.swath[x] = new Path.Circle(515,(x*53)+26,25);
+		      this.swath[x] = new Path.Circle(515,(x*53)+41,45);
 		      //this.swath[x].strokeColor = "#333";
 		      this.swath[x].fillColor = this.get[x];
 		      this.swathii.addChild(this.swath[x])
@@ -167,15 +182,20 @@ sinceLast = new Date().getTime();
   		  }
   		  sinceLast = new Date().getTime();
 			  this.pallette.set(this.pal.clone());
-			  console.log(this.pallette)
 			}
 			if(this.pallette.swathii.hitTest(event.point, {fill:true})){
-			  console.log(this.pallette.swathii.hitTest(event.point, {fill:true}).item.fillColor.alpha);
-			 this.pallette.swathii.hitTest(event.point, {fill:true}).item.strokeColor="#000";
-			 this.pallette.swathii.hitTest(event.point, {fill:true}).item.strokeWidth=5;
-			  document.getElementById('box').style.zIndex = 100;
+			  var item = this.pallette.swathii.hitTest(event.point, {fill:true}).item;
+			 this.pallette.swathii.strokeWidth=0;
+			 this.pallette.swathii.strokeColor= new HSBColor(0,1,1,0);
+			 item.strokeColor="#000";
+			 item.strokeWidth=3;
+			 item.dashArray = [11,5];
+			 item.moveAbove(this.pallette.swath[item.index+1] || this.pallette.swath[item.index-1]);
+			 document.getElementById('box').style.zIndex = 100;
 			 document.getElementById('box').style.display = "block";
-			 document.getElementById('box').innerHTML =  this.pallette.swathii.hitTest(event.point, {fill:true}).item.fillColor.toCssString() +'\n'+ this.pallette.swathii.hitTest(event.point, {fill:true}).item.fillColor.toString();
+			  document.getElementById('box').style.top = item.position.y-30+"px";
+			  document.getElementById('box').style.left = item.position.x+30+"px";
+			 document.getElementById('box').innerHTML =  "CSS: "+this.pallette.swathii.hitTest(event.point, {fill:true}).item.fillColor.toCssString() +'<br />HSLa: '+ this.pallette.swathii.hitTest(event.point, {fill:true}).item.fillColor.toString();
 			 //this.group.remove();
 			 //this.pallette.swathii.remove();
 			}
@@ -245,12 +265,11 @@ colorPicker.init();
   #box{
     z-index:3;
     background:red;
-    height:150px;
+    height:76px;
     width:300px;
     display:none;
-    position:fixed;
+    position:absolute;
     top:10px;
-    right:10px;
   }
   </style>
 
