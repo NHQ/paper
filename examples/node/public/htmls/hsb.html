@@ -171,7 +171,13 @@ sinceLast = new Date().getTime();
 			}
 			if(this.pallette.swathii.hitTest(event.point, {fill:true})){
 			  console.log(this.pallette.swathii.hitTest(event.point, {fill:true}).item.fillColor.alpha);
-			  //this.pallette.swathii.hitTest(event.point, {fill:true}).item.fillColor.alpha = .1;
+			 this.pallette.swathii.hitTest(event.point, {fill:true}).item.strokeColor="#000";
+			 this.pallette.swathii.hitTest(event.point, {fill:true}).item.strokeWidth=5;
+			  document.getElementById('box').style.zIndex = 100;
+			 document.getElementById('box').style.display = "block";
+			 document.getElementById('box').innerHTML =  this.pallette.swathii.hitTest(event.point, {fill:true}).item.fillColor.toCssString() +'\n'+ this.pallette.swathii.hitTest(event.point, {fill:true}).item.fillColor.toString();
+			 //this.group.remove();
+			 //this.pallette.swathii.remove();
 			}
 		},
 
@@ -236,10 +242,27 @@ colorPicker.init();
   body, canvas, .canvas{
     background:#fff;
   }
+  #box{
+    z-index:3;
+    background:red;
+    height:150px;
+    width:300px;
+    display:none;
+    position:fixed;
+    top:10px;
+    right:10px;
+  }
   </style>
 
 </head>
 <body>
 	<canvas id="canvas" resize style="background:white"></canvas>
+  <div id="box"></box>
 </body>
+<script type="text/javascript">
+if ('standalone' in navigator && !navigator.standalone && (/iphone|ipod|ipad/gi).test(navigator.platform) && (/Safari/i).test(navigator.appVersion)) {
+	document.write('<link rel="stylesheet" href="../stylesheets/add2home.css">');
+	document.write('<script type="application/javascript" src="../javascripts/add2home.js"><\/s' + 'cript>');
+}
+</script>
 </html>
