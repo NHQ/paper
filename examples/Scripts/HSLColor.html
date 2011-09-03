@@ -6,6 +6,54 @@
 	<link rel="stylesheet" href="../css/style.css">
 	<script type="text/javascript" src="../../dist/paper.js"></script>
 	<script type="text/paperscript" canvas="canvas">
+var point = view.center;
+	pal = new HSBColor(360, 1, 1);
+
+	var sb = new Path.Rectangle()
+
+	var colors = [];
+	var cycles = 4;
+	for (var i = 0, l = 360; i < l; i++) {
+		var brightness = 1;
+		var hue = i;
+		var color = new HSBColor(hue, 1, brightness);
+		colors.push(color);
+	}
+	
+	var pre = new Path.Rectangle(0,	view.bounds.bottom - 115,30,30);
+	pre.fillColor= "red";
+	pre.fillColor.alpha = 0;
+	pre.fullySelected = true;
+    pre.insert(4, [15,view.bounds.bottom - 55]);
+//	pre.smooth();
+	
+	var path = new Path.Rectangle(15,view.bounds.bottom - 55,720,30);
+	var gradient = new Gradient(colors);
+	var radius = Math.max(view.size.width, view.size.height) * 0.75;
+	console.log(path.bounds)
+	var gradientColor = new GradientColor(gradient, path.bounds.bottomLeft,path.bounds.bottomRight);
+	var pixPath = 3;
+	path.fillColor = gradientColor;	
+	
+	var tiny = new Path.Circle([15,view.bounds.bottom - 40],3);
+	tiny.fillColor= "white";
+	tiny.strokeColor = "#000";
+
+	function onMouseMove(event) {
+		if (project.hitTest(event.point, {fill:true})){
+			//console.log(path.hitTest(event.point, {fill:true}).location.point.x)
+			pre.fillColor.hue = (event.point.x - path.bounds.left) /2;
+			pal.hue = event.point.x / pixPath;
+			color.hue
+			pre.position.x = event.point.x
+			pre.fillColor.alpha = 1;
+			tiny.position.x = event.point.x
+		}
+		if (!path.hitTest(event.point)){
+			pre.fillColor.alpha = 0;
+	}};
+	
+	/*	
 		var steps = {
 			hue: 100,
 			saturation: 20,
@@ -19,7 +67,11 @@
 			var lightness = 1 - (i + 1) / (steps.lightness + 1);
 			createWheel(position, radius, steps, lightness);
 		};
-		
+		function onMouseDown(event) {
+		    //alert(event.point);
+		var t = project.hitTest(event.point, {fill: true});
+		console.log(t)
+		};
 		function createWheel(center, radius, steps, lightness) {
 			var hUnit =  360 / steps.hue;
 			for (var h = 0; h < steps.hue; h++) {
@@ -45,6 +97,7 @@
 				path.fillColor = path.strokeColor = gradientColor;
 			}
 		}
+		*/
 	</script>
 </head>
 <body>
