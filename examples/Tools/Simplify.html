@@ -6,53 +6,53 @@
 	<link rel="stylesheet" href="../css/style.css">
 	<script type="text/javascript" src="../../dist/paper.js"></script>
 	<script type="text/paperscript" canvas="canvas">
-		var path;
+		var line;
 
 		var textItem = new PointText(new Point(20, 30));
 		textItem.fillColor = 'black';
 		textItem.content = 'Click and drag to draw a line.';
 
 		function onMouseDown(event) {
-			// If we produced a path before, deselect it:
-			if (path) {
-				path.selected = false;
+			// If we produced a line before, deselect it:
+			if (line) {
+				line.selected = false;
 			}
 
-			// Create a new path and set its stroke color to black:
-			path = new Path();
-			path.add(event.point);
-			path.strokeColor = 'black';
-			path.strokeWidth = 7;
+			// Create a new line and set its stroke color to black:
+			line = new Path();
+			line.add(event.point);
+			line.strokeColor = 'black';
+			line.strokeWidth = 7;
 
-			// Select the path, so we can see its segment points:
-			path.fullySelected = false;
+			// Select the line, so we can see its segment points:
+			line.fullySelected = false;
 		}
 
-		// While the user drags the mouse, points are added to the path
+		// While the user drags the mouse, points are added to the line
 		// at the position of the mouse:
 		function onMouseDrag(event) {
-			path.add(event.point);
+			line.add(event.point);
 
 			// Update the content of the text item to show how many
 			// segments it has:
-			textItem.content = 'Segment count: ' + path.segments.length;
+			textItem.content = 'Segment count: ' + line.segments.length;
 		}
 
-		// When the mouse is released, we simplify the path:
+		// When the mouse is released, we simplify the line:
 		function onMouseUp(event) {
-			var segmentCount = path.segments.length;
+			var segmentCount = line.segments.length;
 
 			// When the mouse is released, simplify it:
-			path.simplify(10);
-			//path.smooth();
+			line.simplify(10);
+			//line.smooth();
 
-			// Select the path, so we can see its segments:
-			path.fullySelected = false;
+			// Select the line, so we can see its segments:
+			line.fullySelected = false;
 
-			var newSegmentCount = path.segments.length;
+			var newSegmentCount = line.segments.length;
 			var difference = segmentCount - newSegmentCount;
 			var percentage = 100 - Math.round(newSegmentCount / segmentCount * 100);
-			textItem.content = difference + ' of the ' + segmentCount + ' segments were removed. Saving ' + percentage + '%\n meanwhile, here is your path data: '+path.segments;
+			textItem.content = difference + ' of the ' + segmentCount + ' segments were removed. Saving ' + percentage + '%\n meanwhile, here is your line data: '+line.segments;
 
 		}
 	</script>

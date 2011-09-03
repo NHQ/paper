@@ -4,13 +4,21 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 	<title>HSLColor</title>
 	<link rel="stylesheet" href="../css/style.css">
-	<script type="text/javascript" src="../../dist/paper.js"></script>
+	<script type="text/javascript" src="paper.js"></script>
 	<script type="text/paperscript" canvas="canvas">
+	
 var point = view.center;
 	pal = new HSBColor(360, 1, 1);
 
-	var sb = new Path.Rectangle()
 
+	var line;
+
+	var textItem = new PointText(new Point(20, 30));
+	textItem.fillColor = pal;
+	textItem.content = 'Click and drag to draw a line.';
+
+	var sb = new Path.Rectangle(0, 0, 500, 500);
+	sb.fillColor = pal;
 	var colors = [];
 	var cycles = 4;
 	for (var i = 0, l = 360; i < l; i++) {
@@ -27,7 +35,7 @@ var point = view.center;
     pre.insert(4, [15,view.bounds.bottom - 55]);
 //	pre.smooth();
 	
-	var path = new Path.Rectangle(15,view.bounds.bottom - 55,720,30);
+	var path = new Path.Rectangle(15,view.bounds.bottom - 55,360,30);
 	var gradient = new Gradient(colors);
 	var radius = Math.max(view.size.width, view.size.height) * 0.75;
 	console.log(path.bounds)
@@ -35,24 +43,79 @@ var point = view.center;
 	var pixPath = 3;
 	path.fillColor = gradientColor;	
 	
+	var oboff = new Path.Circle([400,view.bounds.bottom - 40],15);
+	oboff.fillColor = "white";
+	
 	var tiny = new Path.Circle([15,view.bounds.bottom - 40],3);
 	tiny.fillColor= "white";
 	tiny.strokeColor = "#000";
 
 	function onMouseMove(event) {
-		if (project.hitTest(event.point, {fill:true})){
+		if (path.hitTest(event.point, {fill:true})){
 			//console.log(path.hitTest(event.point, {fill:true}).location.point.x)
-			pre.fillColor.hue = (event.point.x - path.bounds.left) /2;
-			pal.hue = event.point.x / pixPath;
-			color.hue
-			pre.position.x = event.point.x
+			pre.fillColor.hue = (event.point.x - path.bounds.left);
+			pal.hue = (event.point.x - path.bounds.left) /2;
+			sb.fillColor.hue = (event.point.x - path.bounds.left);
+			pre.position.x = event.point.x;
 			pre.fillColor.alpha = 1;
 			tiny.position.x = event.point.x
+			sb.fillColor.alpha = 1;
 		}
 		if (!path.hitTest(event.point)){
 			pre.fillColor.alpha = 0;
 	}};
 	
+	function onMouseDown (event){
+		
+		// If we produced a line before, deselect it:
+		if (line) {
+			line.selected = false;
+		}
+
+		// Create a new line and set its stroke color to black:
+		line = new Path();
+		line.add(event.point);
+		line.strokeColor = pal;
+		line.strokeWidth = 7;
+
+		// Select the line, so we can see its segment points:
+		line.fullySelected = false;
+		
+		if (sb.hitTest(event.point, {fill:true})){
+			sb.fillColor.saturation = event.point.y / 500 ;
+			sb.fillColor.brightness = event.point.x / 500;
+		}
+		if (oboff.hitTest(event.point, {fill:true})){
+			sb.fillColor.alpha = 0;
+			console.log("alpha!")
+		}
+	}
+	
+	function onMouseDrag(event) {
+		line.add(event.point);
+
+		// Update the content of the text item to show how many
+		// segments it has:
+	//	textItem.content = 'Segment count: ' + line.segments.length;
+	}
+	
+	function onMouseUp(event) {
+		var segmentCount = line.segments.length;
+
+		// When the mouse is released, simplify it:
+		line.simplify(10);
+		//line.smooth();
+
+		// Select the line, so we can see its segments:
+		line.fullySelected = false;
+
+		var newSegmentCount = line.segments.length;
+		var difference = segmentCount - newSegmentCount;
+		var percentage = 100 - Math.round(newSegmentCount / segmentCount * 100);
+		textItem.content = difference + ' of the ' + segmentCount + ' segments were removed. Saving ' + percentage + '%\n meanwhile, here is your line data: '+line.segments;
+
+	}
+
 	/*	
 		var steps = {
 			hue: 100,
