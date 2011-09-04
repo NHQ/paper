@@ -4,12 +4,12 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 	<title>HSLColor</title>
 	<link rel="stylesheet" href="../css/style.css">
-	<script type="text/javascript" src="paper.js"></script>
+	<script type="text/javascript" src="../../dist/paper.js"></script>
 	<script type="text/paperscript" canvas="canvas">
-	
-var point = view.center;
-	pal = new HSBColor(360, 1, 1);
 
+	var point = view.center;
+	pal = new HSBColor(360, 1, 1);
+ 	mouse = [];
 
 	var line;
 
@@ -17,8 +17,8 @@ var point = view.center;
 	textItem.fillColor = pal;
 	textItem.content = 'Click and drag to draw a line.';
 
-	var sb = new Path.Rectangle(0, 0, 500, 500);
-	sb.fillColor = pal;
+
+	
 	var colors = [];
 	var cycles = 4;
 	for (var i = 0, l = 360; i < l; i++) {
@@ -32,8 +32,7 @@ var point = view.center;
 	pre.fillColor= "red";
 	pre.fillColor.alpha = 0;
 	pre.fullySelected = true;
-    pre.insert(4, [15,view.bounds.bottom - 55]);
-//	pre.smooth();
+  pre.insert(4, [15,view.bounds.bottom - 55]);
 	
 	var path = new Path.Rectangle(15,view.bounds.bottom - 55,360,30);
 	var gradient = new Gradient(colors);
@@ -49,20 +48,29 @@ var point = view.center;
 	var tiny = new Path.Circle([15,view.bounds.bottom - 40],3);
 	tiny.fillColor= "white";
 	tiny.strokeColor = "#000";
-
+	sb = new Path.Rectangle(0, 0, 500, 500);
+	sb.fillColor = pal.clone();
 	function onMouseMove(event) {
+		mouse = [event.point.x, event.point.y];
 		if (path.hitTest(event.point, {fill:true})){
+			sb = new Path.Rectangle(0, 0, 500, 500);
+			sb.fillColor = pal.clone();
 			//console.log(path.hitTest(event.point, {fill:true}).location.point.x)
 			pre.fillColor.hue = (event.point.x - path.bounds.left);
-			pal.hue = (event.point.x - path.bounds.left) /2;
+			pal.hue = (event.point.x - path.bounds.left);
 			sb.fillColor.hue = (event.point.x - path.bounds.left);
 			pre.position.x = event.point.x;
 			pre.fillColor.alpha = 1;
 			tiny.position.x = event.point.x
 			sb.fillColor.alpha = 1;
 		}
+		if (sb.hitTest(event.point, {fill:true})){
+			sb.fillColor.saturation = event.point.y / 500 ;
+			sb.fillColor.brightness = event.point.x / 500;
+		}
 		if (!path.hitTest(event.point)){
 			pre.fillColor.alpha = 0;
+			
 	}};
 	
 	function onMouseDown (event){
@@ -75,7 +83,7 @@ var point = view.center;
 		// Create a new line and set its stroke color to black:
 		line = new Path();
 		line.add(event.point);
-		line.strokeColor = pal;
+		line.strokeColor = pal.clone();
 		line.strokeWidth = 7;
 
 		// Select the line, so we can see its segment points:
@@ -84,9 +92,11 @@ var point = view.center;
 		if (sb.hitTest(event.point, {fill:true})){
 			sb.fillColor.saturation = event.point.y / 500 ;
 			sb.fillColor.brightness = event.point.x / 500;
+			pal.brightness = event.point.x / 500 ;
+			pal.saturation = event.point.y / 500 ;
 		}
 		if (oboff.hitTest(event.point, {fill:true})){
-			sb.fillColor.alpha = 0;
+			sb.remove();
 			console.log("alpha!")
 		}
 	}

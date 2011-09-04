@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>HSLColor</title>
+	<link rel="stylesheet" href="../css/style.css">
+	<script type="text/javascript" src="../../dist/paper.js"></script>
+	<script type="text/javascript" src="../../../lib/underscore-min.js"></script>
+	<script type="text/paperscript" canvas="canvas">
+
+	var point = view.center;
+	pal = new HSBColor(360, 1, 1);
+ 	mouse = [];
+	line = new Path();
+	line.add(100,100);
+		line.add(200,100);
+	
+	colorPicker = {
+		init: function(){
+			this.sbSelector();
+			this.hueSelector();
+			this.alphaSelector();
+			//this.mouseMove();
+			//this.mouseDown();
+			//this.mouseDrag();
+			//this.mouseUp();
+		},
+		sbSelector : function(){
+			var bg = new Path.Rectangle(0, 0, 360, 360);
+			var grad = new Gradient([["#000"],["#FFF"]], 'radial');
+			var gradColor = new GradientColor(grad, [180,180], [360,180]);
+			bg.fillColor = gradColor;
+			this.sb = new Path.Rectangle(0, 0, 360, 360);
+			this.sb.fillColor = pal;
+			this.circ = new Path.Circle(360,360, 6);
+			this.circ.strokeColor = "black";
+			this.circ.strokeWidth = 3;
+		},
+		hueSelector : function(){
+			var colors = [];
+			var cycles = 4;
+			for (var i = 0, l = 360; i < l; i++) {
+				var brightness = 1;
+				var hue = i;
+				var color = new HSBColor(hue, 1, brightness);
+				colors.push(color);
+			}
+		
+			hueSelect = new Path.Rectangle(15,view.bounds.bottom - 55,360,30);
+			var gradient = new Gradient(colors);
+			var radius = Math.max(view.size.width, view.size.height) * 0.75;
+			var gradientColor = new GradientColor(gradient, hueSelect.bounds.bottomLeft,hueSelect.bounds.bottomRight);
+			hueSelect.fillColor = gradientColor;
+			
+			this.oboff = new Path.Circle([400,view.bounds.bottom - 40],15);
+			this.oboff.fillColor = "white";
+			
+			this.tiny = new Path.Circle([15,view.bounds.bottom - 40],3);
+			this.tiny.fillColor= "white";
+			this.tiny.strokeColor = "#000";
+		},
+		alphaSelector : function (){
+			this.as = new Path.Rectangle(375,0,50,360);
+			this.palAlpha1 = pal.clone();
+			this.palAlphaZero = pal.clone();
+			this.palAlphaZero.alpha = 0;
+			var gradient = new Gradient([[this.palAlphaZero, .5],[this.palAlpha1]]);
+			var gradientColor = new GradientColor(gradient, this.as.bounds.top,this.as.bounds.bottom);
+			this.as.fillColor = gradientColor;
+		},
+		mouseMove: {
+			hues : function (event){
+				if (hueSelect.hitTest(event.point, {fill:true})){
+					console.log(this);
+					//this.sb = new Path.Rectangle(0, 0, 360, 360);
+					this.sb.fillColor = pal.clone();
+					pal.hue = (event.point.x - hueSelect.bounds.left);
+					this.sb.fillColor.hue = (event.point.x - hueSelect.bounds.left);
+					this.tiny.position.x = event.point.x
+					this.sb.fillColor.alpha = 1;
+				}},
+			sb: function (event){
+				if (this.sb.hitTest(event.point, {fill:true})){
+					//this.circ.position = event.point;
+					this.sb.fillColor.saturation = event.point.y / 360 ;
+					this.sb.fillColor.brightness = event.point.x / 360;
+				}
+				if (!this.sb.hitTest(event.point, {fill:true})){
+					//this.circ.position = event.point;
+				//	this.sb.fillColor.saturation = pal.saturation;
+					//this.sb.fillColor.brightness = pal.brightnes;
+				}
+			}},
+		mouseDown: function (event){
+
+			/* If we produced a line before, deselect it:
+			if (line) {
+				line.selected = false;
+			}
+				// Create a new line and set its stroke color to black:
+			line = new Path();
+			line.add(event.point);
+			line.strokeColor = pal.clone();
+			line.strokeWidth = 7;
+			*/
+			if (this.sb.hitTest(event.point, {fill:true})){
+				this.sb.fillColor = pal;
+				this.sb.fillColor.saturation = event.point.y / 360 ;
+				this.sb.fillColor.brightness = event.point.x / 360;
+				pal.brightness = event.point.x / 360 ;
+				pal.saturation = event.point.y / 360 ;
+			}
+			if (this.oboff.hitTest(event.point, {fill:true})){
+				this.sb.remove();
+			}
+			
+			// s/b
+
+			
+		},
+
+		mouseDrag : function (event) {
+			//line.add(event.point);
+			
+			// S/B
+			if (hueSelect.hitTest(event.point, {fill:true})){
+				console.log(this);
+				//this.sb = new Path.Rectangle(0, 0, 360, 360);
+				this.sb.fillColor = pal.clone();
+				pal.hue = (event.point.x - hueSelect.bounds.left);
+				this.sb.fillColor.hue = (event.point.x - hueSelect.bounds.left);
+				this.tiny.position.x = event.point.x
+				this.sb.fillColor.alpha = 1;
+				this.palAlphaZero.hue = (event.point.x - hueSelect.bounds.left);
+			}
+			if (this.as.hitTest(event.point, {fill:true})){
+				pal.alpha = event.point.y / 360;
+				//this.sb.alpha = event.point.y / 360;
+			}
+			if (this.sb.hitTest(event.point, {fill:true})){
+				this.circ.position = event.point;
+				this.sb.fillColor.saturation = event.point.y / 360;
+				this.sb.fillColor.brightness = event.point.x / 360;
+				pal.brightness = event.point.x / 360 ;
+				pal.saturation = event.point.y / 360 ;
+			}
+			
+			
+		},
+
+		mouseUp: function (event) {
+			/*
+			var segmentCount = line.segments.length;
+
+			// When the mouse is released, simplify it:
+			line.simplify(0);
+			//line.smooth();
+
+			// Select the line, so we can see its segments:
+			line.fullySelected = false;
+
+			var newSegmentCount = line.segments.length;
+			var difference = segmentCount - newSegmentCount;
+			var percentage = 100 - Math.round(newSegmentCount / segmentCount * 100);
+			//textItem.content = difference + ' of the ' + segmentCount + ' segments were removed. Saving ' + percentage + '%\n meanwhile, here is your line data: '+line.segments;
+			*/
+		}
+	};
+_.bindAll(colorPicker);
+colorPicker.mouseMove.hues = _.bind(colorPicker.mouseMove.hues, colorPicker)
+colorPicker.mouseMove.sb = _.bind(colorPicker.mouseMove.sb, colorPicker)
+
+colorPicker.init();
+console.log(colorPicker.sb)
+/*
+function onMouseMove(event){
+	colorPicker.mouseMove.hues(event)
+	colorPicker.mouseMove.sb(event)
+}
+*/
+function onMouseDrag(event){
+	colorPicker.mouseDrag(event)
+}
+function onMouseDown(event){
+	colorPicker.mouseDown(event)
+}
+function onMouseUp(event){
+	colorPicker.mouseUp(event)
+}
+
+	</script>
+</head>
+<body>
+	<canvas id="canvas" resize style="background:black"></canvas>
+</body>
+</html>
