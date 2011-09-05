@@ -123,16 +123,7 @@
 			//line.add(event.point);
 			
 			// S/B
-			if (hueSelect.hitTest(event.point, {fill:true})){
-				console.log(this);
-				//this.sb = new Path.Rectangle(0, 0, 360, 360);
-				this.sb.fillColor = pal.clone();
-				pal.hue = (event.point.x - hueSelect.bounds.left);
-				this.sb.fillColor.hue = (event.point.x - hueSelect.bounds.left);
-				this.tiny.position.x = event.point.x
-				this.sb.fillColor.alpha = 1;
-				this.palAlphaZero.hue = (event.point.x - hueSelect.bounds.left);
-			}
+
 			if (this.as.hitTest(event.point, {fill:true})){
 				pal.alpha = event.point.y / 360;
 				//this.sb.alpha = event.point.y / 360;
@@ -172,12 +163,12 @@ colorPicker.mouseMove.sb = _.bind(colorPicker.mouseMove.sb, colorPicker)
 
 colorPicker.init();
 console.log(colorPicker.sb)
-/*
+
 function onMouseMove(event){
 	colorPicker.mouseMove.hues(event)
 	colorPicker.mouseMove.sb(event)
 }
-*/
+
 function onMouseDrag(event){
 	colorPicker.mouseDrag(event)
 }
@@ -187,7 +178,9 @@ function onMouseDown(event){
 function onMouseUp(event){
 	colorPicker.mouseUp(event)
 }
+function onResize(event) {
 
+}
 	</script>
 </head>
 <body>
