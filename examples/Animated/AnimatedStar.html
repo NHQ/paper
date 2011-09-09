@@ -6,39 +6,69 @@
 	<link rel="stylesheet" href="../css/style.css">
 	<script type="text/javascript" src="../../dist/paper.js"></script>
 	<script type="text/paperscript" canvas="canvas">
-		var layer = project.activeLayer;
 
-		var values = {
-			count: 34,
-			points: 32
-		};
+		 vesel = [];
+		 bogies = [];
 
-		for (var i = 0; i < values.count; i++) {
-			var offset = new Point(20 + 10 * i, 0);
-			var path = new Path();
-			path.fillColor = i % 2 ? 'red' : 'black';
-			path.closed = true;
-
-			var l = offset.length;
-			for (var j = 0; j < values.points * 2; j++) {
-				offset.angle += 360 / values.points;
-				var vector = offset.normalize(l * (j % 2 ? 0.1 : -0.1));
-				path.add(offset + vector);
-			}
-			path.smooth();
-			var placedSymbol = new PlacedSymbol(path);
-			layer.insertChild(0, placedSymbol);
+		for (var x = 0; x<20; x+=1){
+			//console.log(x);
+			//var manifest = {};
+			bogies[x] = new Path.Circle([Math.random()*1000,Math.random()*1000], 50);
+			bogies[x].fillColor = new HSBColor(210,1,1);
+		//	manifest.ship.position = [Math.random()*10,Math.random()*10];
+			bogies[x].vector = new Point(Math.random()*10, Math.random()*10);
+			console.log(bogies[x].vector.angle);
+			//bogies.unshift(manifest);
 		}
-		layer.position = view.center;
-
-		function onFrame(event) {
-			for (var i = 0, l = layer.children.length; i < l; i++) {
-				var item = layer.children[i];
-				var angle = (values.count - i) * Math.sin(event.count / 128) / 10;
-				item.rotate(angle);
+	//	console.log(bogies.length);
+				len = bogies.length;
+				console.log(len)
+		function collide (obj,index){
+			if (index >= obj.length) return;
+			for(var x=obj.length-1;x>index;x=-1){
+				var dx = obj[index].position - obj[x].position;
+				//console.log(dx.length)
+				if(dx.length <= 100){
+					//console.log("collide");
+					obj[index].fillColor.hue += 10;
+					obj[x].fillColor.hue += 10;
+				}
+			}
+			collide(obj,index+1)
+		}
+		
+		function collyde (ship,index){
+			//console.log(index);
+			for (var j = 0; j<len; ++j){
+				var dx = ship.position - bogies[j].position;
+				//console.log(dx);
+				if (dx == 0){return}
+				if(dx.length <= 100){
+					//console.log("collide");
+					ship.vector.angle += (180 - bogies[j].vector.angle);
+					bogies[j].vector.angle += (180 - ship.vector.angle);
+				}
 			}
 		}
-
+		
+		function onFrame() {
+			//collide(bogies,0)
+			for (var x = 0; x < len; x++)
+			{
+				//console.log(x)
+				if ((bogies[x].position.x - 50) <= view.bounds.left || (bogies[x].position.x + 50) >= view.bounds.right){
+					//console.log("x")
+					bogies[x].vector.angle = (180 - (bogies[x].vector.angle * 2));
+				}
+				if ((bogies[x].position.y - 50) <= view.bounds.top || (bogies[x].position.y + 50) >= view.bounds.bottom){
+					//console.log("y")
+					bogies[x].vector.angle = -(bogies[x].vector.angle);
+				}
+				collyde(bogies[x],x+1);
+				bogies[x].position += bogies[x].vector;
+			}
+		}
+		
 		// Reposition the paths whenever the window is resized:
 		function onResize(event) {
 			layer.position = view.center;
