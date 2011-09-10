@@ -276,6 +276,10 @@ colorPicker.init();
     left:0;
     background:#c1c2c3;
     z-index:1000;
+    text-align:center;
+  }
+  #tools a{
+    font-size:20px;
   }
   </style>
 
@@ -283,7 +287,7 @@ colorPicker.init();
 <body>
 	<canvas id="canvas" resize style="background:white"></canvas>
   <div id="box"></div>
-  <div id="tools"><a href="javascript:colorPicker.group.remove();">paint</a></div>
+  <div id="tools"><a href="javascript:colorPicker.group.remove();">remove()</a></div>
 </body>
 <script type="text/javascript">
 if ('standalone' in navigator && !navigator.standalone && (/iphone|ipod|ipad/gi).test(navigator.platform) && (/Safari/i).test(navigator.appVersion)) {
