@@ -10,21 +10,41 @@
 		 vesel = [];
 		 bogies = [];
 
-		for (var x = 0; x<20; x+=1){
+		for (var x = 0; x<10; x+=1){
 			//console.log(x);
 			//var manifest = {};
-			bogies[x] = new Path.Circle([Math.random()*1000,Math.random()*1000], 50);
-			bogies[x].fillColor = new HSBColor(210,1,1);
+			var r = Math.random()*100;
+			bogies[x] = new Path.Circle(100,100, r);
+			bogies[x].fillColor = new HSBColor(210,.8,.8, .5);
 		//	manifest.ship.position = [Math.random()*10,Math.random()*10];
-			bogies[x].vector = new Point(Math.random()*10, Math.random()*10);
-			console.log(bogies[x].vector.angle);
+			bogies[x].vector = new Point(Math.random(), Math.random());
+			bogies[x].vector.length = Math.random()*5;
+			bogies[x].strokeColor = "red"
+			bogies[x].r = r;
+			//console.log(bogies[x].vector.angle);
+			//bogies.unshift(manifest);
+		}
+		for (var x = 10; x<50; x+=1){
+			//console.log(x);
+			//var manifest = {};
+			var r = Math.random()*8;
+			bogies[x] = new Path.Circle(100,100, r);
+			bogies[x].fillColor = new HSBColor(210,.8,.8, .5);
+		//	manifest.ship.position = [Math.random()*10,Math.random()*10];
+			bogies[x].vector = new Point(Math.random(), Math.random());
+			bogies[x].vector.length = Math.random()*25;
+			bogies[x].strokeColor = "red"
+			bogies[x].r = r;
+			//console.log(bogies[x].vector.angle);
 			//bogies.unshift(manifest);
 		}
 	//	console.log(bogies.length);
 				len = bogies.length;
-				console.log(len)
+			//	console.log(len)
+	/*
+	
 		function collide (obj,index){
-			if (index >= obj.length) return;
+			if (index >= obj.length);
 			for(var x=obj.length-1;x>index;x=-1){
 				var dx = obj[index].position - obj[x].position;
 				//console.log(dx.length)
@@ -37,32 +57,38 @@
 			collide(obj,index+1)
 		}
 		
+		*/
+		stamp = function(){return new Date().getTime();}
+		nownow = stamp();
 		function collyde (ship,index){
-			//console.log(index);
-			for (var j = 0; j<len; ++j){
+			for (var j = index; j<len; ++j){
+			  var collDist = (ship.bounds.height/2 + bogies[j].bounds.height/2);
 				var dx = ship.position - bogies[j].position;
-				//console.log(dx);
-				if (dx == 0){return}
-				if(dx.length <= 100){
-					//console.log("collide");
-					ship.vector.angle += (180 - bogies[j].vector.angle);
-					bogies[j].vector.angle += (180 - ship.vector.angle);
+				if(dx.length == 0){return}
+				else if (dx.length <= collDist){
+					ship.fillColor.alpha = .8;
+					bogies[j].fillColor.alpha = .8;
+					ship.fillColor.hue += 3;
+					bogies[j].fillColor.hue += 3;
 				}
+			  else if (dx.length > collDist){
+			    ship.fillColor.alpha -= .01;
+					bogies[j].fillColor.alpha -= .01;
+			  }
 			}
 		}
-		
 		function onFrame() {
 			//collide(bogies,0)
 			for (var x = 0; x < len; x++)
 			{
 				//console.log(x)
-				if ((bogies[x].position.x - 50) <= view.bounds.left || (bogies[x].position.x + 50) >= view.bounds.right){
+				if ((bogies[x].position.x - 55) <= view.bounds.left || (bogies[x].position.x + 55) >= view.bounds.right){
 					//console.log("x")
-					bogies[x].vector.angle = (180 - (bogies[x].vector.angle * 2));
+					bogies[x].vector.x = -(bogies[x].vector.x);
 				}
 				if ((bogies[x].position.y - 50) <= view.bounds.top || (bogies[x].position.y + 50) >= view.bounds.bottom){
 					//console.log("y")
-					bogies[x].vector.angle = -(bogies[x].vector.angle);
+						bogies[x].vector.y = -(bogies[x].vector.y);
 				}
 				collyde(bogies[x],x+1);
 				bogies[x].position += bogies[x].vector;

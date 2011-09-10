@@ -6,127 +6,6 @@
 	<link rel="stylesheet" href="../css/style.css">
 	<script type="text/javascript" src="../../dist/paper.js"></script>
 	<script type="text/paperscript" canvas="canvas">
-
-	var point = view.center;
-	pal = new HSBColor(360, 1, 1);
- 	mouse = [];
-
-	var line;
-
-	var textItem = new PointText(new Point(20, 30));
-	textItem.fillColor = pal;
-	textItem.content = 'Click and drag to draw a line.';
-
-
-	
-	var colors = [];
-	var cycles = 4;
-	for (var i = 0, l = 360; i < l; i++) {
-		var brightness = 1;
-		var hue = i;
-		var color = new HSBColor(hue, 1, brightness);
-		colors.push(color);
-	}
-	
-	var pre = new Path.Rectangle(0,	view.bounds.bottom - 115,30,30);
-	pre.fillColor= "red";
-	pre.fillColor.alpha = 0;
-	pre.fullySelected = true;
-  pre.insert(4, [15,view.bounds.bottom - 55]);
-	
-	var path = new Path.Rectangle(15,view.bounds.bottom - 55,360,30);
-	var gradient = new Gradient(colors);
-	var radius = Math.max(view.size.width, view.size.height) * 0.75;
-	console.log(path.bounds)
-	var gradientColor = new GradientColor(gradient, path.bounds.bottomLeft,path.bounds.bottomRight);
-	var pixPath = 3;
-	path.fillColor = gradientColor;	
-	
-	var oboff = new Path.Circle([400,view.bounds.bottom - 40],15);
-	oboff.fillColor = "white";
-	
-	var tiny = new Path.Circle([15,view.bounds.bottom - 40],3);
-	tiny.fillColor= "white";
-	tiny.strokeColor = "#000";
-	sb = new Path.Rectangle(0, 0, 500, 500);
-	sb.fillColor = pal.clone();
-	function onMouseMove(event) {
-		mouse = [event.point.x, event.point.y];
-		if (path.hitTest(event.point, {fill:true})){
-			sb = new Path.Rectangle(0, 0, 500, 500);
-			sb.fillColor = pal.clone();
-			//console.log(path.hitTest(event.point, {fill:true}).location.point.x)
-			pre.fillColor.hue = (event.point.x - path.bounds.left);
-			pal.hue = (event.point.x - path.bounds.left);
-			sb.fillColor.hue = (event.point.x - path.bounds.left);
-			pre.position.x = event.point.x;
-			pre.fillColor.alpha = 1;
-			tiny.position.x = event.point.x
-			sb.fillColor.alpha = 1;
-		}
-		if (sb.hitTest(event.point, {fill:true})){
-			sb.fillColor.saturation = event.point.y / 500 ;
-			sb.fillColor.brightness = event.point.x / 500;
-		}
-		if (!path.hitTest(event.point)){
-			pre.fillColor.alpha = 0;
-			
-	}};
-	
-	function onMouseDown (event){
-		
-		// If we produced a line before, deselect it:
-		if (line) {
-			line.selected = false;
-		}
-
-		// Create a new line and set its stroke color to black:
-		line = new Path();
-		line.add(event.point);
-		line.strokeColor = pal.clone();
-		line.strokeWidth = 7;
-
-		// Select the line, so we can see its segment points:
-		line.fullySelected = false;
-		
-		if (sb.hitTest(event.point, {fill:true})){
-			sb.fillColor.saturation = event.point.y / 500 ;
-			sb.fillColor.brightness = event.point.x / 500;
-			pal.brightness = event.point.x / 500 ;
-			pal.saturation = event.point.y / 500 ;
-		}
-		if (oboff.hitTest(event.point, {fill:true})){
-			sb.remove();
-			console.log("alpha!")
-		}
-	}
-	
-	function onMouseDrag(event) {
-		line.add(event.point);
-
-		// Update the content of the text item to show how many
-		// segments it has:
-	//	textItem.content = 'Segment count: ' + line.segments.length;
-	}
-	
-	function onMouseUp(event) {
-		var segmentCount = line.segments.length;
-
-		// When the mouse is released, simplify it:
-		line.simplify(10);
-		//line.smooth();
-
-		// Select the line, so we can see its segments:
-		line.fullySelected = false;
-
-		var newSegmentCount = line.segments.length;
-		var difference = segmentCount - newSegmentCount;
-		var percentage = 100 - Math.round(newSegmentCount / segmentCount * 100);
-		textItem.content = difference + ' of the ' + segmentCount + ' segments were removed. Saving ' + percentage + '%\n meanwhile, here is your line data: '+line.segments;
-
-	}
-
-	/*	
 		var steps = {
 			hue: 100,
 			saturation: 20,
@@ -140,11 +19,7 @@
 			var lightness = 1 - (i + 1) / (steps.lightness + 1);
 			createWheel(position, radius, steps, lightness);
 		};
-		function onMouseDown(event) {
-		    //alert(event.point);
-		var t = project.hitTest(event.point, {fill: true});
-		console.log(t)
-		};
+		
 		function createWheel(center, radius, steps, lightness) {
 			var hUnit =  360 / steps.hue;
 			for (var h = 0; h < steps.hue; h++) {
@@ -170,7 +45,6 @@
 				path.fillColor = path.strokeColor = gradientColor;
 			}
 		}
-		*/
 	</script>
 </head>
 <body>

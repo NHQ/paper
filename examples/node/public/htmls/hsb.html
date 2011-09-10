@@ -10,25 +10,12 @@
 	<script type="text/javascript">
 paper.install(window);
 window.onload = function(){
-  function hex2a(hex) {
-      var str = '';
-      for (var i = 0; i < hex.length; i += 2)
-          str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
-      return str;
-  }
 colz = store.get('colors');
-sinceLast = new Date().getTime();  
-  
-  paper.setup('canvas');
-	var lino = new Path([515,0],[515,500]);
-	lino.strokeWidth = 7;
-  lino.strokeColor = "#c1c2c3";
-	var point = view.center;
-	//pal = new HSBColor(110, 1, 1);
- 	mouse = [];
-	line = new Path();
-	line.add(100,100);
-		line.add(200,100);
+sinceLast = new Date().getTime(); 
+
+paper.setup('canvas');
+
+center = view.center;
 	
 	colorPicker = {
 		init: function(){
@@ -63,10 +50,20 @@ sinceLast = new Date().getTime();
 		    this.swathii.remove();
 		    this.swathii = new Group();
 		    this.swath = [];
-		    for (var x in this.get){
-		      this.swath[x] = new Path.Circle(515,(x*53)+41,45);
+		    var rad = 350;
+		    var radian = 15;
+		    if (this.get.length > 24){radian-=6}
+		    for (var x = this.get.length; x >= 0; --x){
+		      var unit = 360 / this.get.length;
+		      vek = new Point({
+            angle: -(x * radian) - 5,
+            length: rad
+          })
+		      console.log(vek.angle)
+		      this.swath[x] = new Path.Circle(center.add(vek),45);
 		      //this.swath[x].strokeColor = "#333";
 		      this.swath[x].fillColor = this.get[x];
+		      //this.swath[x].moveAbove(this.swath[x+1]);
 		      this.swathii.addChild(this.swath[x])
 		    }  
 		    //this.swathii.position = [550,0]
@@ -76,7 +73,7 @@ sinceLast = new Date().getTime();
 		  swath:[]
 		},
 		Selector : function(){
-		  this.group = new Group();
+		  this.group = new Layer();
 			this.pal =  new HSBColor(210, 1, 1);
 			this.bg = [];
 			for (i=35;i>0;--i){
@@ -134,7 +131,7 @@ sinceLast = new Date().getTime();
 			
 			this.group.addChildren([this.as, this.sb, this.hueSelect, this.tiny, this.circ, this.add, this.addRect]);
 			this.group.selected = false;
-			this.group.position = [view.bounds.left + 225,view.bounds.bottom - 225];
+			this.group.position = view.center;
 			
 			
 			
@@ -271,12 +268,22 @@ colorPicker.init();
     position:absolute;
     top:10px;
   }
+  #tools{
+    width:100%;
+    height:40px;
+    position:fixed;
+    bottom:0;
+    left:0;
+    background:#c1c2c3;
+    z-index:1000;
+  }
   </style>
 
 </head>
 <body>
 	<canvas id="canvas" resize style="background:white"></canvas>
-  <div id="box"></box>
+  <div id="box"></div>
+  <div id="tools"><a href="javascript:colorPicker.group.remove();">paint</a></div>
 </body>
 <script type="text/javascript">
 if ('standalone' in navigator && !navigator.standalone && (/iphone|ipod|ipad/gi).test(navigator.platform) && (/Safari/i).test(navigator.appVersion)) {
