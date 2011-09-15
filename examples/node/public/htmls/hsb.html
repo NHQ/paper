@@ -12,10 +12,10 @@ paper.install(window);
 window.onload = function(){
 colz = store.get('colors');
 sinceLast = new Date().getTime(); 
-
 paper.setup('canvas');
-
 center = view.center;
+
+// notes: smudge draw. user holds down to "soak" up color alpha, and then as they drag, the alpha decerases until gone. 
 	
 	colorPicker = {
 		init: function(){
