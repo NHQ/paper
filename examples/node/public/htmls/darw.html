@@ -457,7 +457,7 @@ draw.init();
 <body>
 	<canvas id="canvas" resize style="background:white"></canvas>
   <div id="box"></div>
-  <div id="tools"><a href="javascript:write.init();">Write  </a><a href="javascript:colorPicker.init();"> color Pick </a><a href="javascript:colorPicker.remove();draw.init()"> draw </a></div>
+  <div id="tools"><a href="javascript:colorPicker.remove();javascript:write.init();">write  </a><a href="javascript:colorPicker.init();"> color picker </a><a href="javascript:colorPicker.remove();draw.init()"> draw </a></div>
 </body>
 	<script type="text/javascript">
 var dropzone = document.getElementById('tools');
