@@ -16,9 +16,16 @@ paper.setup('canvas');
 center = view.center;
 
 // notes: smudge draw. user holds down to "soak" up color alpha, and then as they drag, the alpha decerases until gone. 
-	
+	globs = {
+	  color: new HSBColor(1,1,0,1),
+	  active: {},
+	  last: function(){
+	    this.active.init(true, false);
+	  }
+	};
 	draw = {
 		init: function(){
+		  globs.active = this;
 			_.bindAll(draw);
 			this.tool = new Tool();
 			this.tool.onMouseDrag = this.mouseDrag;
@@ -101,8 +108,8 @@ center = view.center;
   		  swath:[]
   		},
   		Selector : function(){
-  		  this.group = new Layer();
-  			this.pal =  new HSBColor(210, 1, 1);
+  		  this.group = new Group();
+  			globs.color = this.pal =  new HSBColor(210, 1, 1);
   			this.bg = [];
   			for (i=35;i>0;--i){
   				this.bg[i] = new Path([3,(i*10)],[358,0+(i*10)]);
@@ -160,7 +167,6 @@ center = view.center;
   			this.group.addChildren([this.as, this.sb, this.hueSelect, this.tiny, this.circ, this.add, this.addRect]);
   			this.group.selected = false;
   			this.group.position = view.center;
-  			this.group.scale(.5)
 
 
 
@@ -168,6 +174,7 @@ center = view.center;
   		},
   		remove: function(){
   	    this.group.remove();
+  	    this.pallette.swathii.remove();
   	  },
   		mouseUp: function (event){
   			/* If we produced a line before, deselect it:
@@ -186,8 +193,8 @@ center = view.center;
   				var sat = (360 - Math.abs((event.point.y - this.sb.position.y)*2))/360;;
   				this.sb.fillColor.saturation = sat;
   				this.sb.fillColor.brightness =  bright;
-  				this.pal.brightness = bright;
-  				this.pal.saturation = sat;
+  				globs.color = this.pal.brightness = bright;
+  				globs.color = this.pal.saturation = sat;
   				this.palAlphaZero.saturation = sat;
   				this.palAlphaZero.brightness = bright;
   				this.palAlpha1.saturation = sat;
@@ -195,15 +202,15 @@ center = view.center;
   			}
   			if (this.hueSelect.hitTest(event.point, {fill:true})){
   				this.sb.fillColor = this.pal.clone();
-  				this.pal.hue = (event.point.x - this.hueSelect.bounds.left);
+  				globs.color = this.pal.hue = (event.point.x - this.hueSelect.bounds.left);
   				this.sb.fillColor.hue = (event.point.x - this.hueSelect.bounds.left);
   				this.tiny.position.x = event.point.x
   				this.palAlphaZero.hue = (event.point.x - this.hueSelect.bounds.left);
   				this.palAlpha1.hue = (event.point.x - this.hueSelect.bounds.left);
   			}
   			if (this.as.hitTest(event.point, {fill:true})){
-  				this.pal.alpha = (event.point.y - this.as.bounds.top) / 340;
-  				this.sb.alpha = (event.point.y - this.sb.bounds.top) / 360;
+  				globs.color = this.pal.alpha = (event.point.y - this.as.bounds.top) / 340;
+  				globs.color = this.sb.alpha = (event.point.y - this.sb.bounds.top) / 360;
   			}
   			if(this.addRect.hitTest(event.point, {fill:true})){
   			  if( (new Date().getTime() - sinceLast) < 500){
@@ -214,7 +221,10 @@ center = view.center;
   			}
   			if(this.pallette.swathii.hitTest(event.point, {fill:true})){
   			  var item = this.pallette.swathii.hitTest(event.point, {fill:true}).item;
-  			  colorPicker.pal = item.fillColor;
+  			 globs.color = colorPicker.pal = item.fillColor;
+  			 this.remove();
+  			 globs.last();
+  			 /*
   			 this.pallette.swathii.strokeWidth=0;
   			 this.pallette.swathii.strokeColor= new HSBColor(0,1,1,0);
   			 item.strokeColor="#000";
@@ -228,6 +238,7 @@ center = view.center;
   			 document.getElementById('box').innerHTML =  "CSS: "+this.pallette.swathii.hitTest(event.point, {fill:true}).item.fillColor.toCssString() +'<br />HSLa: '+ this.pallette.swathii.hitTest(event.point, {fill:true}).item.fillColor.toString();
   			 //this.group.remove();
   			 //this.pallette.swathii.remove();
+  			 */
   			}
   		},
   		mouseDrag : function (event) {			
@@ -290,7 +301,122 @@ center = view.center;
       
     },
   }
-    
+  write = {
+    init: function(check, pos){
+      globs.active = this;
+      var pos = pos;
+      _.bindAll(this);
+      this.settings();
+      this.curses();
+      if (!check){
+        console.log('yup');
+        this.layer = this.layer || [];
+        } 
+      if(check && this.layer.children){
+         _.each(this.layer[0].children, function(l){l.fillColor = globs.color})
+      }
+      this.writer(pos);
+			this.tool = new Tool();
+			this.tool.onMouseDrag = this.mouseDrag;
+			this.tool.onMouseUp = this.mouseUp;
+			this.tool.onMouseDown = this.mouseDown;
+			this.tool.onKeyDown = this.keyDown;
+			this.tool.onKeyUp = this.keyUp;
+			this.tool.activate();
+			view.draw()
+    },
+    curses: function(){
+      if (this.cursor){this.cursor.remove();}
+      this.cursor = new Path.Rectangle(-10,-10,this.fontSize+2, 22);
+      this.cursor.fillColor = this.color;
+      if (this.text){
+        this.cursor.position = this.text.position.add((12*this.text.content.length)+10,-5);
+      }
+    },
+    remove:function(){
+      this.cursor.remove();
+    },
+    settings:function(){
+      this.font = 'Courier';
+      this.fontSize = 15;
+      this.color = globs.color.clone();
+      this.justify = 'left';
+      this.lineSpacing = 0;
+      this.kerning = 0;
+    },
+    writer: function(pos){          
+      this.tProto = new PointText();
+      this.tProto.paragraphStyle.justification = this.justify;
+      this.tProto.characterStyle.fontSize = this.fontSize;
+      this.tProto.characterStyle.font = this.font;
+      this.tProto.fillColor = this.color;
+      if (pos && typeof pos == 'object') {
+        //this.layer[0].fillColor = this.color;
+        //this.text.fillColor = this.color;
+        this.text = this.tProto.clone();
+        this.text.position = pos;
+        this.cursor.position = this.text.position.add((12*this.text.content.length)+10,-5);
+        this.cursor.fillColor = this.color;
+      }  
+      if (this.text){
+        this.text.fillColor = this.color
+      }
+    },
+    keyDown:function(event){
+      if (event.key == 'space'){
+        event.preventDefault();
+        this.text.content += ' ';
+        this.cursor.position = this.text.position.add((12*this.text.content.length)+10,-5);
+      }
+      else if (event.key == 'backspace'){
+        function backspace (x){
+          //var layer = this.layer[0];
+          var c = x.content || null;
+          var l = c ? c.length : null;
+          if (l == 0 || !l){
+            write.layer[0].children.pop();
+            //write.text = _.last(write.layer[0].children);
+            if (write.layer[0].children.length == 0){
+              write.layer.shift();
+            }
+            write.text = _.last(write.layer[0].children);
+            backspace(write.text);
+          }
+          else{
+           write.text.content = c.slice(0, -1);
+                      write.curses();
+           write.cursor.position = write.text.position.add((12*write.text.content.length)+10,-5);
+          }
+        }backspace(this.text);
+        //view.draw();
+      }
+      else if (event.key == 'enter'){
+        var pos = this.text.position.add([0,this.fontSize]);
+        this.cursor.remove();
+        this.init(true, pos)
+      }
+      else {
+        this.text.content += event.character;
+       this.cursor.position = this.text.position.add((12*this.text.content.length)+10,-5);
+      }
+    },
+    keyUp:function(event){
+      
+    },
+    mouseDown:function(event){
+      this.cursor.position = event.point.add(5,-5);
+      var layer = new Layer();
+      this.layer.unshift(layer);
+      this.text = this.tProto.clone();
+      this.text.position = event.point;
+    },
+    mouseDrag:function(event){
+      
+    },
+    mouseUp:function(event){
+      
+    },
+  }
 
 draw.init();
     
@@ -323,6 +449,7 @@ draw.init();
   }
   #tools a{
     font-size:20px;
+    margin: 0 30px
   }
   </style>
 
@@ -330,7 +457,7 @@ draw.init();
 <body>
 	<canvas id="canvas" resize style="background:white"></canvas>
   <div id="box"></div>
-  <div id="tools"><a href="javascript:colorPicker.init();">color Pick()</a><a href="javascript:colorPicker.remove();draw.init()">remove()</a></div>
+  <div id="tools"><a href="javascript:write.init();">Write  </a><a href="javascript:colorPicker.init();"> color Pick </a><a href="javascript:colorPicker.remove();draw.init()"> draw </a></div>
 </body>
 	<script type="text/javascript">
 var dropzone = document.getElementById('tools');
@@ -342,7 +469,8 @@ dropzone.ondrop = function (e){
     file = files[0];
     reader = new FileReader();        
     reader.onload = function (event) {
-      console.log('loaded');
+      even = event;
+      console.log(event.target.result);
       var img = document.createElement('img');
       img.src=event.target.result;
       img.id = 'raster';
@@ -352,7 +480,7 @@ dropzone.ondrop = function (e){
       var raster = new Raster('raster')
       view.draw()
     };
-    console.log(reader.readAsDataURL(file).result);
+    reader.readAsDataURL(files[0])
     //console.log(t.result);
     return false;
 };
