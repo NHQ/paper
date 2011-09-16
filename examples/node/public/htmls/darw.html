@@ -313,7 +313,7 @@ center = view.center;
         console.log('yup');
         this.layer = this.layer || [];
         } 
-      if(check && this.layer.children){
+      if(check && this.layer[0].children){
          _.each(this.layer[0].children, function(l){l.fillColor = globs.color})
       }
       this.writer(pos);
