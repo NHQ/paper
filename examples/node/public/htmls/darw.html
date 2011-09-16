@@ -370,6 +370,7 @@ center = view.center;
         this.cursor.position = this.text.position.add((12*this.text.content.length)+10,-5);
       }
       else if (event.key == 'backspace'){
+        event.preventDefault();
         function backspace (x){
           //var layer = this.layer[0];
           var c = x.content || null;
