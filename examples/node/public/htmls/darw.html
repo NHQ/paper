@@ -16,6 +16,7 @@ paper.setup('canvas');
 center = view.center;
 
 // notes: smudge draw. user holds down to "soak" up color alpha, and then as they drag, the alpha decerases until gone. 
+
 	globs = {
 	  color: new HSBColor(1,1,0,1),
 	  active: {},
@@ -417,9 +418,10 @@ center = view.center;
       
     },
   }
+colorPicker.init();
+colorPicker.remove();  
+draw.init();  
 
-draw.init();
-    
 };
 
 	</script>
