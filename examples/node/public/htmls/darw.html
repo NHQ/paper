@@ -309,7 +309,7 @@ center = view.center;
       _.bindAll(this);
       this.settings();
       this.curses();
-      if (!check){
+      if (!check && !this.layer){
         console.log('yup');
         this.layer = this.layer || [];
         } 
@@ -413,7 +413,6 @@ center = view.center;
       this.text.position = event.point;
     },
     mouseDrag:function(event){
-      
     },
     mouseUp:function(event){
       
