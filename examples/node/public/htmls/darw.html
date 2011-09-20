@@ -24,6 +24,101 @@ center = view.center;
 	    this.active.init(true, false);
 	  }
 	};
+  menu = {
+    init: function(){
+      //var side = side || 'top';
+      this.bar();
+      _.bindAll(this);
+			this.tool = new Tool();
+			this.tool.onMouseDown = this.mouseDown;
+			this.tool.onMouseDrag = this.mouseDrag;
+			this.tool.onMouseUp = this.mouseUp;
+			this.tool.activate();
+			view.draw()
+    },
+    bar: function(){
+      //this.group = new Group();
+      var styles = function (fill){
+        var style = {};
+        if (fill){
+          var origin = this.bounds.bottomLeft;
+          var end = this.bounds.bottomRight;
+          var gradient = new Gradient(['black','white'])
+          var gColor = new GradientColor(gradient, origin, end) 
+        }
+        style.fillColor = fill ? gColor : null;
+        style.strokeColor = '#000';
+        style.strokeWidth = 1;
+        return style
+      };
+  // lines and arcs
+      var line = new Path([[5,5],[55,35]]);
+          line.style = new styles(false);
+      var arc = new Path.Arc(new Point(5,55), new Point(40, 40), new Point(55,55));
+          arc.style = styles.apply(arc, [false]);
+  // polygons
+      var triangle = new Path.RegularPolygon([25, 90], 3, 25);
+          triangle.style = styles.apply(triangle, [true])
+      var sqr = new Path.Rectangle([25,90],[30,30]);
+          sqr.style = styles.apply(sqr, [true])
+  // circles
+      var circle = new Path.Circle([25,155], 23)
+          circle.style = styles.apply(circle, [true])
+  // starts!
+      var star = new Path.RegularPolygon([25, 210],10,25)
+      console.log(star.bounds.center)
+          _.each(star.segments, function(seg, index){
+            var vector = star.bounds.center;
+            if (index%2) {console.log('odd')}
+            else {
+              console.log(seg.point.add(vector));
+              seg.point = vector.add(seg.point.normalize(1))
+            }
+          })
+          star.style = styles.apply(star, [true])
+//      var rectagon = new Path.Rectangle();
+//	    var circle = new Path.Circle();
+//	    var square = new Path.Rectangle;
+//	    var roundedRect = new Path.RoundRectangle();
+//	    var polygon = new Path.RegularPolygon();
+//	    var star = new Path.RegularPolygon() // + segment manipulating, every other, vector = center
+    },
+    remove:function(){
+      //this.layer.remove();
+    },
+    mouseDown:function(event){
+      
+    },
+    mouseDrag:function(event){
+      
+    },
+    mouseUp:function(event){
+      
+    }
+  };
+	shapes = {
+	  init:function(){
+	    this.Selector();
+			_.bindAll(shapes);
+			this.tool = new Tool();
+			this.tool.onMouseDown = this.mouseDown;
+			this.tool.onMouseDrag = this.mouseDrag;
+			this.tool.onMouseUp = this.mouseUp;
+			this.tool.activate();
+			this.pallette.store();
+			view.draw()
+	  },
+	  Selector: function(){
+	    this.group = new Group();
+	    var rectagon = new Path.Rectangle();
+	    var circle = new Path.Circle();
+	    var square = new Path.Rectangle;
+	    var roundedRect = new Path.RoundRectangle();
+	    var polygon = new Path.RegularPolygon();
+	    var arc = new Path.Arc();
+	    var star = new Path.RegularPolygon() // + segment manipulating, every other, vector = center
+	  }
+	};
 	draw = {
 		init: function(){
 		  globs.active = this;
@@ -418,9 +513,8 @@ center = view.center;
       
     },
   }
-colorPicker.init();
-colorPicker.remove();  
-draw.init();  
+draw.init();
+menu.init();  
 
 };
 
