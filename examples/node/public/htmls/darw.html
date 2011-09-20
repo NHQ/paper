@@ -67,13 +67,15 @@ center = view.center;
   // starts!
       var star = new Path.RegularPolygon([25, 210],10,25)
       console.log(star.bounds.center)
+      var vector = star.bounds.center;
           _.each(star.segments, function(seg, index){
-            var vector = star.bounds.center;
             if (index%2) {console.log('odd')}
             else {
+              var vecktor = seg.point.add(-(star.bounds.center))
               console.log(seg.point.add(vector));
-              seg.point = vector.add(seg.point.normalize(1))
+              seg.point = vector.add(seg.point.normalize(10))
             }
+            vector.angle += 360/10
           })
           star.style = styles.apply(star, [true])
 //      var rectagon = new Path.Rectangle();
