@@ -231,7 +231,7 @@ center = view.center;
           t = c;
                 
       var stopper = 1;
-      var cooler = new HSBColor(0,1,1,.2);
+      var cooler = new HSBColor(300,1,1,.2);
       function spirate (p,q,t){
         if (stopper > 181){return}
         ++stopper;
@@ -286,7 +286,6 @@ center = view.center;
 <body>
 	<canvas id="canvas" resize style="background:white"></canvas>
   <div id="box"></div>
-  <div id="tools"><a href="javascript:write.init();">write  </a><a href="javascript:colorPicker.init();"> color picker </a><a href="javascript:draw.init()"> draw </a></div>
 </body>
 	<script type="text/javascript">
 var dropzone = document.getElementById('tools');
