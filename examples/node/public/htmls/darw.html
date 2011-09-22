@@ -16,7 +16,7 @@ paper.setup('canvas');
 center = view.center;
 
 // notes: smudge draw. user holds down to "soak" up color alpha, and then as they drag, the alpha decerases until gone. 
-
+  
 	globs = {
 	  color: new HSBColor(1,1,0,1),
 	  active: {},
@@ -24,16 +24,20 @@ center = view.center;
 	    this.active.init(true, false);
 	  }
 	};
+  init = {
+    init: function(){
+      this.tool = new Tool();
+      this.tool.onMouseDown = this.mouseDown; 
+    },
+    mouseDown: function(event){
+    }
+  }
   menu = {
     init: function(){
       //var side = side || 'top';
       this.bar();
-      _.bindAll(this);
-			this.tool = new Tool();
-			this.tool.onMouseDown = this.mouseDown;
-			this.tool.onMouseDrag = this.mouseDrag;
-			this.tool.onMouseUp = this.mouseUp;
-			this.tool.activate();
+     // _.bindAll(this);
+
 			view.draw()
     },
     bar: function(){
@@ -65,18 +69,18 @@ center = view.center;
       var circle = new Path.Circle([25,155], 23)
           circle.style = styles.apply(circle, [true])
   // starts!
-      var star = new Path.RegularPolygon([25, 210],10,25)
-      console.log(star.bounds.center)
-      var vector = star.bounds.center;
-          _.each(star.segments, function(seg, index){
-            if (index%2) {console.log('odd')}
-            else {
-              var vecktor = seg.point.add(-(star.bounds.center))
-              console.log(seg.point.add(vector));
-              seg.point = vector.add(seg.point.normalize(10))
-            }
-            vector.angle += 360/10
-          })
+  var star = new Path.RegularPolygon([25, 210],10,25)
+  console.log(star.bounds.center)
+  var vector = star.bounds.center;
+      _.each(star.segments, function(seg, index){
+        if (index%2) {console.log('odd')}
+        else {
+          var vektor = star.bounds.center.subtract(seg.point)
+          seg.point = seg.point.add(vektor.normalize(20))
+        }
+        vector.angle += 360/10
+      })
+      star.style = styles.apply(star, [true])
           star.style = styles.apply(star, [true])
 //      var rectagon = new Path.Rectangle();
 //	    var circle = new Path.Circle();
@@ -134,6 +138,14 @@ center = view.center;
 			view.draw()
 		},
 		mouseDown: function(event){
+      if(project.hitTest(event.point, {fill:true, stroke:true, segment: true})){
+        var hit = project.hitTest(event.point, {fill:true, stroke:true});
+        _.each(project.layers , function(lay){_.each(lay.children, function(child){child.selected = false})})
+        hit.item.selected = true
+  		  if (hit.type == 'segment'){
+  		    hit.item.segment.add([20,50])
+  		  }
+      }
 		  this.layer = new Layer();
       this.path = new Path();
       this.path.fillColor = colorPicker.pal;
@@ -145,6 +157,7 @@ center = view.center;
 		
 		},
 		mouseDrag : function (event) {
+
       this.path.add(event.point);
       //this.path.fillColor = colorPicker.pal
 		}
@@ -515,9 +528,9 @@ center = view.center;
       
     },
   }
-draw.init();
+//draw.init();
 menu.init();  
-
+init.init()
 };
 
 	</script>
@@ -555,7 +568,7 @@ menu.init();
 <body>
 	<canvas id="canvas" resize style="background:white"></canvas>
   <div id="box"></div>
-  <div id="tools"><a href="javascript:colorPicker.remove();javascript:write.init();">write  </a><a href="javascript:colorPicker.init();"> color picker </a><a href="javascript:colorPicker.remove();draw.init()"> draw </a></div>
+  <div id="tools"><a href="javascript:write.init();">write  </a><a href="javascript:colorPicker.init();"> color picker </a><a href="javascript:draw.init()"> draw </a></div>
 </body>
 	<script type="text/javascript">
 var dropzone = document.getElementById('tools');

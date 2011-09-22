@@ -1810,6 +1810,7 @@ var Item = this.Item = Base.extend({
 			paper.project.activeLayer.addChild(this);
 		this._style = PathStyle.create(this);
 		this.setStyle(this._project.getCurrentStyle());
+		this.selectable = true;
 	},
 
 	_changed: function(flags) {
