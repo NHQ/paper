@@ -25,12 +25,11 @@ center = view.center;
       this.globs = Object.create(null);
 			this.tool = new Tool();
 			this.tool.onMouseDrag = this.mouseDrag();
-			this.tool.onMouseDown = this.mouseDown(this.events.select);
+		this.tool.onMouseDown = this.mouseDown(this.events.select);
 			this.tool.onMouseUp = this.mouseUp();
 			this.tool.activate();
-			this.spirals(view.center);
-			this.spirals2(view.center.subtract([200,0]));
-			this.spirals2(view.center.subtract([-200,0]));
+			//this.spirals(view.center)
+			this.spirals2(view.center);
 			view.draw()
     },
     globs:{},
@@ -46,7 +45,7 @@ center = view.center;
         //  gg.globs.selectDot.remove();
           view.draw();
         }
-        item.selected = true;
+        item.fullySelected = true;
         this.target.item = item;
 /*      
         this.globs.selectRect = new Path.Rectangle(item.bounds)
@@ -183,81 +182,69 @@ center = view.center;
         }
       }
     },
-    spirals: function(c){
-      _.bindAll(this);
-      var layer = new Layer(), r = 100
-      var container = new Path.Circle(c, r)
-      container.style = {
-        fillColor: '#fff',
-        strokeColor: new HSBColor(1,1,0,.5),
-        strokeWidth: 1,
-        dashArray: [10,4]
-      }
-      var pvector = new Point({angle: 0, length: r}), qvector = new Point({angle:42, length: r});
-      var p = c.add(pvector), q = c.add(qvector),
-          pc = c.subtract(p), qc = c.subtract(q),
-          t = c;
-                
-      var stopper = 1;
-      var cooler = new HSBColor(0,1,1,.2);
-      function spirate (p,q,t){
-        if (stopper > 3){return}
-        ++stopper;
-        var arc = new Path.Arc(p,t,q);
-        arc.style = {
-          strokeColor: cooler,
-          strokeWidth: 1,
-          dashArray: [10,4]
-        };
-        qvector.angle += 42;
-        p = q, q = t.add(qvector)
-        spirate(p,q,t);
-       } spirate(p,q,t) 
-    },
     spirals2: function(c){
       _.bindAll(this);
-      var layer = new Layer(), r = 200
-      var container = new Path.Circle(c, r)
-      container.style = {
-        fillColor: '#fff',
-        strokeColor: new HSBColor(1,1,0,.5),
-        strokeWidth: 1,
-        dashArray: [10,4]
-      }
-              var gradient = new Gradient([['black'],['orange',.2],['yellow',.5],[new HSBColor(240,.7,1,.5),.9]], 'radial');
-              var gcolor = new GradientColor(gradient, c, c.add([0,100]))                                                                                                             
-      
-      var pvector = new Point({angle: 0, length: r}), qvector = new Point({angle:0, length: r+30});
-      var p = c.add(pvector), q = c.add(qvector),
+      var layer = new Layer(), r = 200;                                                                                                          
+       var p = new Point(view.center.subtract([50,0])), q = view.center.add([33,0]),
           pc = c.subtract(p), qc = c.subtract(q),
-          tvector = new Point({angle:21, length:50}), t = c.add(tvector);
+          tvector = new Point({angle:21, length:50}), t = view.center.add([-0,-50])
                 
       var stopper = 1;
       var cooler = new HSBColor(300,1,1,.2);
-      function spirate (p,q,t){
-        var g = q, j = p, f = t;
-        if (stopper > 80){return}
-        ++stopper;
-        var arc = new Path.Arc(p,t,q);
-        arc.style = {
+      this.spiral = new Path();
+      this.spiral.add(p);
+      this.spiral.arcTo(t,q);
+    //  this.spiral.lineTo(q);
+      
+      var p = q = t = null;
+      
+      function end(){
+        var gradient = new Gradient([['black',],['orange',.2],['yellow',.5],[new HSBColor(240,.7,1,.5),.9]], 'radial');
+        var gcolor = new GradientColor(gradient, [gg.spiral.position.x, gg.spiral.position.y], gg.spiral.position.add(gg.spiral.bounds.width/3))
+        gg.spiral.style = {
           strokeColor: gcolor,
           strokeWidth: 1,
-          dashArray: [4,4]
+          dashArray: [5,3]
         };
-        //qvector.angle += 42;
-        //qvector.length += 10;
-        console.log(qvector.length);
-        tvector.angle += 42;
-        pvector.angle += 42;
-        ty = t.subtract(j);
-        ty.angle += 97;
-        t = q.add(ty);  
-        p = g; 
-        py = q.subtract(j);
-        py.angle += 97;
-        q = q.add(py);
-        spirate(p,q,t);
-       } spirate(p,q,t) 
+      }end();
+
+      window.setTimeout(function(){gg.tool.onMouseDown = gg.mouseDown(function(event){
+        stopper = 1;
+        var spy = gg.spiral;
+        var p = spy.segments[0].point, q = spy.segments[2].point, t = spy.segments[1].point
+        gg.spiral.removeSegments(0,4);
+        view.draw();
+        function end (){
+          var gradient = new Gradient([['black',],['orange',.2],['yellow',.5],[new HSBColor(240,.7,1,.5),.9]], 'radial');
+          var gcolor = new GradientColor(gradient, [gg.spiral.position.x, gg.spiral.position.y], gg.spiral.position.add(gg.spiral.bounds.width/3))
+          gg.spiral.style = {
+            strokeColor: gcolor,
+            strokeWidth: 1,
+            dashArray: [5,3]
+          };
+          gg.spiral.fullySelected = false;
+        }
+        function spirate (p,q,t){
+          var g = q, j = p, f = t;
+          var spiz = new Path();
+          if (stopper > 99){end();return}
+          ++stopper;
+          ty = t.subtract(j);
+          ty.angle += 140;
+          ty.length += 2;
+          t = q.add(ty);  
+          p = g; 
+          py = q.subtract(j);
+          py.angle += 140;
+          q = q.add(py);
+                 spiz.add(p);
+          spiz.arcTo(t,q);
+          //spiz.lineTo(q);
+          gg.spiral.addSegments(spiz.segments);
+          spirate(p,q,t);
+         } spirate(p,q,t)
+      })},5000);
+
     }
   }
   gg.init();
@@ -266,7 +253,7 @@ center = view.center;
 	</script>
   <style>
   body, canvas, .canvas{
-    background:#fff;
+    background:#999;
     cursor: crosshair;
   }
   #box{
