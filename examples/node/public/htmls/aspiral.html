@@ -29,15 +29,13 @@ center = view.center;
 			this.tool.onMouseUp = this.mouseUp();
 			this.tool.activate();
 			//this.spirals(view.center)
-			this.spirals2(view.center);
+			this.spiral.go.apply(this, [view.center]);
 			view.draw()
     },
     globs:{},
     target: {
-      setItem: function(item){
-        console.log(this)
+      setItem: function(item, bool){
         var i = this.target.item || null;
-        console.log(i,'\n', item)
         if(i){
           if(item._id != i._id)
           i.selected = false;
@@ -45,7 +43,7 @@ center = view.center;
         //  gg.globs.selectDot.remove();
           view.draw();
         }
-        item.fullySelected = true;
+        item.fullySelected = bool;
         this.target.item = item;
 /*      
         this.globs.selectRect = new Path.Rectangle(item.bounds)
@@ -79,7 +77,7 @@ center = view.center;
             this.funs.deSelect.apply(this);
             *///select new
             //if(this.target.item && this.target.item._id != hit.item._id){console.log('hair');this.target.item.selected = false}
-            this.target.setItem.apply(this, [hit.item]);
+            this.target.setItem.apply(this, [hit.item, true]);
             //this.funs.select.apply(this, [hit.item, true])
             this.tool.onMouseDown = this.mouseDown(this.events.grabSegment, this.events.select);
             //this.tool.onMouseUp = this.mouseUp(this.events.grabSegment, this.events.select);
@@ -182,70 +180,75 @@ center = view.center;
         }
       }
     },
-    spirals2: function(c){
-      _.bindAll(this);
-      var layer = new Layer(), r = 200;                                                                                                          
-       var p = new Point(view.center.subtract([50,0])), q = view.center.add([33,0]),
-          pc = c.subtract(p), qc = c.subtract(q),
-          tvector = new Point({angle:21, length:50}), t = view.center.add([-0,-50])
-                
-      var stopper = 1;
-      var cooler = new HSBColor(300,1,1,.2);
-      this.spiral = new Path();
-      this.spiral.add(p);
-      this.spiral.arcTo(t,q);
-    //  this.spiral.lineTo(q);
-      
-      var p = q = t = null;
-      
-      function end(){
-        var gradient = new Gradient([['black',],['orange',.2],['yellow',.5],[new HSBColor(240,.7,1,.5),.9]], 'radial');
-        var gcolor = new GradientColor(gradient, [gg.spiral.position.x, gg.spiral.position.y], gg.spiral.position.add(gg.spiral.bounds.width/3))
-        gg.spiral.style = {
-          strokeColor: gcolor,
-          strokeWidth: 1,
-          dashArray: [5,3]
-        };
-      }end();
+    spiral: {
+    go: function(c){
+      //_.bindAll(this);
+      var triangle = new Path.RegularPolygon(c, 3, 50);
+          //triangle.style = styles.apply(triangle, [true])
 
-      window.setTimeout(function(){gg.tool.onMouseDown = gg.mouseDown(function(event){
-        stopper = 1;
-        var spy = gg.spiral;
-        var p = spy.segments[0].point, q = spy.segments[2].point, t = spy.segments[1].point
-        gg.spiral.removeSegments(0,4);
-        view.draw();
+      this.target.setItem.apply(this, [triangle, false]);
+      this.spiral.angle = 137;
+      this.spiral.mx = -1.007;
+      this.spiral.stopper = 1;
+        
+        
         function end (){
-          var gradient = new Gradient([['black',],['orange',.2],['yellow',.5],[new HSBColor(240,.7,1,.5),.9]], 'radial');
-          var gcolor = new GradientColor(gradient, [gg.spiral.position.x, gg.spiral.position.y], gg.spiral.position.add(gg.spiral.bounds.width/3))
-          gg.spiral.style = {
+          var gradient = new Gradient([['black',],['orange',.33],['orange',.56],[new HSBColor(240,1,0,.2),.99]], 'radial');
+          var gcolor = new GradientColor(gradient, this.target.center || [this.target.item.position.x, this.target.item.position.y], this.target.item.position.add(this.target.item.bounds.width/3))
+          this.target.item.style = {
             strokeColor: gcolor,
             strokeWidth: 1,
             dashArray: [5,3]
           };
-          gg.spiral.fullySelected = false;
+          this.target.item.fullySelected = false;
         }
-        function spirate (p,q,t){
-          var g = q, j = p, f = t;
-          var spiz = new Path();
-          if (stopper > 99){end();return}
-          ++stopper;
-          ty = t.subtract(j);
-          ty.angle += 140;
-          ty.length += 2;
-          t = q.add(ty);  
-          p = g; 
-          py = q.subtract(j);
-          py.angle += 140;
-          q = q.add(py);
-                 spiz.add(p);
-          spiz.arcTo(t,q);
-          //spiz.lineTo(q);
-          gg.spiral.addSegments(spiz.segments);
-          spirate(p,q,t);
-         } spirate(p,q,t)
-      })},5000);
 
-    }
+        function spyrule(item){
+          var spath = this.target.stud ? this.target.stud : this.target.item.clone();
+
+          if (this.spiral.stopper > 300 ){end.apply(this);return}
+          ++this.spiral.stopper;
+          
+          var p = spath.segments[0].point
+          ,   q = _.last(spath.segments).point
+          ,   j = p
+          ,   g = q
+          ,   qp = q.subtract(j);
+
+          if(spath.closed){
+            g = q = p;
+            this.target.center = p;
+          }
+
+          for (i = 1; i < spath.segments.length - 1; ++i){
+            var ty = spath.segments[i].point.subtract(j), ti = spath.segments[i].point.add(j);
+            ty.angle += this.spiral.angle;
+            ty.length *= this.spiral.mx;
+            spath.segments[i].point = g.add(ty);
+            spath.segments[i].handleIn.angle += this.spiral.angle;
+            spath.segments[i].handleOut.angle += this.spiral.angle;
+            spath.segments[i].handleIn.length *= this.spiral.mx;
+            spath.segments[i].handleOut.length *= this.spiral.mx;
+          }
+          
+          spath.segments[0].point = q;
+          spath.segments[0].handleIn.angle += this.spiral.angle;
+          spath.segments[0].handleOut.angle += this.spiral.angle;
+          spath.segments[0].handleIn.length *= this.spiral.mx;
+          spath.segments[0].handleOut.length *= this.spiral.mx;
+          qp.angle += this.spiral.angle;
+            qp.length *= this.spiral.mx;
+          _.last(spath.segments).point = q.add(qp);
+          _.last(spath.segments).handleIn.angle += this.spiral.angle;
+          _.last(spath.segments).handleOut.angle += this.spiral.angle;
+          _.last(spath.segments).handleIn.length *= this.spiral.mx;
+          _.last(spath.segments).handleOut.length *= this.spiral.mx;
+          this.target.item.addSegments(spath.segments);
+          this.target.stud = spath;
+          window.setTimeout(spyrule.apply(this),12)
+        
+        } spyrule.apply(this)
+    }}
   }
   gg.init();
 };
