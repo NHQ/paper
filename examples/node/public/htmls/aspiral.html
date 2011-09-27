@@ -25,15 +25,17 @@ center = view.center;
       this.globs = Object.create(null);
 			this.tool = new Tool();
 			this.tool.onMouseDrag = this.mouseDrag();
-		this.tool.onMouseDown = this.mouseDown(this.events.select);
+		  this.tool.onMouseDown = this.mouseDown();
 			this.tool.onMouseUp = this.mouseUp();
 			this.tool.activate();
 			//this.spirals(view.center)
-			this.spiral.go.apply(this, [view.center]);
+			this.draw()
+			//this.spiral.go.apply(this, [view.center]);
 			view.draw()
     },
     globs:{},
     target: {
+      item: null,
       setItem: function(item, bool){
         var i = this.target.item || null;
         if(i){
@@ -119,6 +121,21 @@ center = view.center;
           if(hit && hit.segment){
             hit.segment.point = event.point
           }
+        },
+        draw: function(event){
+          console.log(this)
+          this.layer = new Layer();
+          this.path = new Path();
+          this.target.setItem.call(this, this.path, false);
+          //this.path.fillColor = colorPicker.pal;
+          this.path.strokeWidth = 2;
+          this.path.strokeCap = 'round';
+          this.path.dashArray = [10,10]
+          this.path.strokeColor = new HSBColor(99.75, .75, .818, .79);
+        },
+        drawDrag: function(event){
+          console.log(this)
+          this.path.add(event.point);
         }
     },
     funs: {
@@ -135,6 +152,7 @@ center = view.center;
           strokeWidth: 0
         };
         item.selected = fully;
+
       },
       deSelect: function(item){
         this.globs.selectRect.remove();
@@ -180,15 +198,16 @@ center = view.center;
         }
       }
     },
+    draw: function(){
+      this.tool.onMouseDown = this.mouseDown.call(this, this.events.draw);
+//      this.tool.onMouseDowm = this.mouseDown.call(this, this.events.draw)
+      this.tool.onMouseDrag = this.mouseDrag.call(this, this.events.drawDrag)
+    },
     spiral: {
-    go: function(c){
+    go: function(e){
+      console.log(this.spiral.mx)
       //_.bindAll(this);
-      var triangle = new Path.RegularPolygon(c, 3, 50);
-          //triangle.style = styles.apply(triangle, [true])
-
-      this.target.setItem.apply(this, [triangle, false]);
-      this.spiral.angle = 137;
-      this.spiral.mx = -1.007;
+      e.preventDefault;
       this.spiral.stopper = 1;
         
         
@@ -196,17 +215,17 @@ center = view.center;
           var gradient = new Gradient([['black',],['orange',.33],['orange',.56],[new HSBColor(240,1,0,.2),.99]], 'radial');
           var gcolor = new GradientColor(gradient, this.target.center || [this.target.item.position.x, this.target.item.position.y], this.target.item.position.add(this.target.item.bounds.width/3))
           this.target.item.style = {
-            strokeColor: gcolor,
-            strokeWidth: 1,
-            dashArray: [5,3]
+            strokeColor: new HSBColor(99.75, .75, .818, .79),
+            strokeWidth: 2,
+            dashArray: [10,10]
           };
           this.target.item.fullySelected = false;
+                  view.draw();
         }
 
         function spyrule(item){
           var spath = this.target.stud ? this.target.stud : this.target.item.clone();
-
-          if (this.spiral.stopper > 300 ){end.apply(this);return}
+          if (this.spiral.stopper >= this.spiral.reps ){end.apply(this);return}
           ++this.spiral.stopper;
           
           var p = spath.segments[0].point
@@ -252,6 +271,12 @@ center = view.center;
   }
   gg.init();
 };
+function update(x){
+  gg.spiral.angle = parseFloat(document.getElementById('angle').value);
+  gg.spiral.mx = parseFloat(document.getElementById('mx').value);
+  gg.spiral.reps = parseFloat(document.getElementById('reps').value);
+  gg.spiral.go.apply(gg, [x])
+}
 
 	</script>
   <style>
@@ -268,7 +293,7 @@ center = view.center;
     position:absolute;
     top:10px;
   }
-  #tools{
+  #controls{
     width:100%;
     height:40px;
     position:fixed;
@@ -288,6 +313,14 @@ center = view.center;
 <body>
 	<canvas id="canvas" resize style="background:white"></canvas>
   <div id="box"></div>
+  <div id="controls">
+
+      Angle: <input type="text" id="angle" value="60"></input>
+      Growth Multiplier (1 = 100% = no growth): <input type="text" id="mx" value="1.0005"></input>
+      Reps: <input type="text" id="reps" value="120"></input>
+      <input type="submit" value="Draw Spiral" onclick="javascript:update(evt)"></input>
+
+  </div>
 </body>
 	<script type="text/javascript">
 var dropzone = document.getElementById('tools');
