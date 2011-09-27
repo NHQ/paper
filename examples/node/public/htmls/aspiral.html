@@ -126,16 +126,19 @@ center = view.center;
           console.log(this)
           this.layer = new Layer();
           this.path = new Path();
+          this.path.add(event.point)
           this.target.setItem.call(this, this.path, false);
           //this.path.fillColor = colorPicker.pal;
           this.path.strokeWidth = 2;
           this.path.strokeCap = 'round';
-          this.path.dashArray = [10,10]
-          this.path.strokeColor = new HSBColor(99.75, .75, .818, .79);
+          this.path.dashArray = [10,10];
         },
         drawDrag: function(event){
           console.log(this)
           this.path.add(event.point);
+          var gradient = new Gradient([['black',],['orange',.33],[ new HSBColor(210,1,1,.2),.56],['orange',.99]], 'radial');
+          var gcolor = new GradientColor(gradient, this.path.center || [this.path.position.x, this.path.position.y], this.path.position.add(this.path.bounds.width/3));
+          this.path.strokeColor = gcolor;
         }
     },
     funs: {
@@ -212,20 +215,21 @@ center = view.center;
         
         
         function end (){
-          var gradient = new Gradient([['black',],['orange',.33],['orange',.56],[new HSBColor(240,1,0,.2),.99]], 'radial');
+          var gradient = new Gradient([['black',],['orange',.33],[ new HSBColor(210,1,1,.2),.56],['orange',.99]], 'radial');
           var gcolor = new GradientColor(gradient, this.target.center || [this.target.item.position.x, this.target.item.position.y], this.target.item.position.add(this.target.item.bounds.width/3))
           this.target.item.style = {
-            strokeColor: new HSBColor(99.75, .75, .818, .79),
+            strokeColor: gcolor,
             strokeWidth: 2,
             dashArray: [10,10]
           };
           this.target.item.fullySelected = false;
+          this.target.stud.remove();
                   view.draw();
         }
 
         function spyrule(item){
           var spath = this.target.stud ? this.target.stud : this.target.item.clone();
-          if (this.spiral.stopper >= this.spiral.reps ){end.apply(this);return}
+          if (this.spiral.stopper > this.spiral.reps ){end.apply(this);return}
           ++this.spiral.stopper;
           
           var p = spath.segments[0].point
@@ -316,7 +320,7 @@ function update(x){
   <div id="controls">
 
       Angle: <input type="text" id="angle" value="60"></input>
-      Growth Multiplier (1 = 100% = no growth): <input type="text" id="mx" value="1.0005"></input>
+      Growth Multiplier (1 = 100% = no growth): <input type="text" id="mx" value="1.009"></input>
       Reps: <input type="text" id="reps" value="120"></input>
       <input type="submit" value="Draw Spiral" onclick="javascript:update(evt)"></input>
 
