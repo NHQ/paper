@@ -69,19 +69,25 @@ center = view.center;
       var circle = new Path.Circle([25,155], 23)
           circle.style = styles.apply(circle, [true])
   // starts!
-  var star = new Path.RegularPolygon([25, 210],10,25)
-  console.log(star.bounds.center)
-  var vector = star.bounds.center;
-      _.each(star.segments, function(seg, index){
-        if (index%2) {console.log('odd')}
-        else {
-          var vektor = star.bounds.center.subtract(seg.point)
-          seg.point = seg.point.add(vektor.normalize(20))
-        }
-        vector.angle += 360/10
-      })
-      star.style = styles.apply(star, [true])
-          star.style = styles.apply(star, [true])
+  var burble = new Path.RegularPolygon(view.center,7,50 );
+                          //burble.strokeJoin = 'bevel';
+                                  _.each(burble.curves, function(curve, index){
+                                          var midpoint = curve.segment2.point.subtract(curve.segment1.point);
+                                          midpoint.angle -= 90;
+                  curve.handle1 = midpoint.normalize(100); // the normalize is the variable w/ radius
+                                          curve.handle2 = midpoint.normalize(100);
+                          })
+                                  burble.style = styles.apply(burble, [true])
+              var star = new Path.RegularPolygon([35, 230],10,25)
+                  _.each(star.segments, function(seg, index){
+                    if (index%2) {var vector = new Point([35,230]).subtract(seg.point)
+                     seg.point = seg.point.add(vector.normalize(15))}
+                    else {
+                      return
+                    }
+                   // vector.angle += 360/10
+                  })
+                  star.style = styles.apply(star, [false])
 //      var rectagon = new Path.Rectangle();
 //	    var circle = new Path.Circle();
 //	    var square = new Path.Rectangle;
@@ -579,9 +585,7 @@ init.init()
 	<canvas id="canvas" resize style="background:white"></canvas>
   <div id="box"></div>
   <div id="tools"><a href="javascript:write.init();">write  </a><a href="javascript:colorPicker.init();"> color picker </a><a href="javascript:draw.init()"> draw </a></div>
-  <div id="options">
-    hello
-  </div>
+
 </body>
 	<script type="text/javascript">
 var dropzone = document.getElementById('tools');
