@@ -558,6 +558,16 @@ init.init()
     z-index:1000;
     text-align:center;
   }
+  #options{
+    height:100%;
+    width:40px;
+    position:fixed;
+    top:0;
+    left:0;
+    background:#c1c2c3;
+    z-index:1000;
+    text-align:left;
+  }
   #tools a{
     font-size:20px;
     margin: 0 30px
@@ -569,6 +579,9 @@ init.init()
 	<canvas id="canvas" resize style="background:white"></canvas>
   <div id="box"></div>
   <div id="tools"><a href="javascript:write.init();">write  </a><a href="javascript:colorPicker.init();"> color picker </a><a href="javascript:draw.init()"> draw </a></div>
+  <div id="options">
+    hello
+  </div>
 </body>
 	<script type="text/javascript">
 var dropzone = document.getElementById('tools');
