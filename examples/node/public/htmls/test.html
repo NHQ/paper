@@ -15,7 +15,7 @@ sinceLast = new Date().getTime();
 paper.setup('canvas');
 center = view.center;
 
-// notes: smudge draw. user holds down to "soak" up color alpha, and then as they drag, the alpha decerases until gone. 
+//notes: with the exception of a lil spaghetting, *this* nearly always refers to the parent object gg
   
   gg = Object.create(null);
   gg = {
@@ -28,14 +28,13 @@ center = view.center;
 			this.tool.onMouseUp = this.mouseUp();
 			this.tool.activate();
 			this.tool.minDistance = 0;
-			//this.spirals(view.center)
 			this.draw.init.apply(this)
-			//this.spiral.go.apply(this, [view.center]);
 			view.draw()
     },
     globs:{
       color: new HSBColor(1,1,0,1),
       active:{},
+      // run the last active drawing tool's.init() (after color pickering)
       last: function(){
         if(!this.active.init){return}
         else
@@ -49,6 +48,7 @@ center = view.center;
       fillColor:""
     },
     target: {
+      // setting a target item or segment for selecting and manipulating 
       item: null,
       setItem: function(item, bool){
         var i = this.target.item || null;
@@ -81,6 +81,9 @@ center = view.center;
       }
     },
     events: {
+      // atomic event coordination depending on tool being used. These are passed to one of this.mouseUp(), this.mouseDown(), this.mouseDrag, 
+      // to which paper.js's tool.onMouseUp etc are set (located at this.tool)
+      // 
       select: function(event){
           var hit = project.hitTest(event.point, {tolerance: 10, fill: true, stroke:true, segments: true})
           if (hit && hit.item.selectable){
@@ -228,6 +231,7 @@ center = view.center;
         		}
     },
     funs: {
+      // helper functions, some obsolete
       select: function(item, fully){
         if(_.contains(this.globs, item)){return}
         this.globs.selectRect = new Path.Rectangle(item.bounds);
@@ -260,9 +264,11 @@ center = view.center;
       }
     },
     remove:function(){
+      // currenly obsolete
       this.layer.remove();
     },
     mouseDown:function(){
+      // the following 3 functions set the papers tools. They are called to change tool event handling per user selection
       var guments = arguments;
       return function(event){        
         for (var i = 0; i<guments.length;++i){
@@ -286,7 +292,7 @@ center = view.center;
         }
       }
     },
-    colorPicker : {
+    colorPicker : { // ugly but functional
     		init: function(){
     			this.colorPicker.Selector.apply(this);
     			_.bindAll(this);
@@ -400,10 +406,6 @@ center = view.center;
     			this.group.addChildren([this.as, this.sb, this.hueSelect, this.tiny, this.circ, this.add, this.addRect]);
     			this.group.selected = false;
     			this.group.position = view.center;
-
-
-
-    //			this.add = new Path([[25,25],[25,10],[35,10],[25,35]]);
     		},
     		remove: function(){
     	    gg.group.remove();
@@ -413,7 +415,7 @@ center = view.center;
     shapes: function(){
       
     },
-    draw: {
+    draw: { // simply sets tool events for drawing
         init: function(){
           this.globs.active = this.draw;
           this.tool.onMouseDown = this.mouseDown.call(this, this.events.draw);
@@ -421,7 +423,7 @@ center = view.center;
           this.tool.onMouseDrag = this.mouseDrag.call(this, this.events.drawDrag)
         }
     },
-    spiral: {
+    spiral: { // looks at this.target.item (the last drawn path) and makes a spiral of it
       go: function(e){
         e.preventDefault;
         this.spiral.stopper = 1;
@@ -465,7 +467,7 @@ center = view.center;
           _.last(spath.segments).handleOut.angle += this.spiral.angle;
           _.last(spath.segments).handleIn.length *= this.spiral.mx;
           _.last(spath.segments).handleOut.length *= this.spiral.mx;
-          spath.simplify();
+          //spath.simplify();
           this.target.item.addSegments(spath.segments);
           this.target.stud = spath;
           window.setTimeout(this.spiral.spiral.apply(this),12)
@@ -474,7 +476,7 @@ center = view.center;
           console.log(this.target.item.segments.length)
           this.target.stud.remove();
           this.target.stud = null;
-          //this.target.item.simplify();
+          //this.target.item.simplify(0);
           view.draw();
         }
     }
