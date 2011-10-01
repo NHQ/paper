@@ -80,7 +80,7 @@ center = view.center;
                                   burble.style = styles.apply(burble, [true])
               var star = new Path.RegularPolygon([35, 230],10,25)
                   _.each(star.segments, function(seg, index){
-                    if (index%2) {var vector = new Point([35,230]).subtract(seg.point)
+                    if (index%2) {var vector = event.downPoint.subtract(seg.point)
                      seg.point = seg.point.add(vector.normalize(15))}
                     else {
                       return
@@ -522,11 +522,12 @@ center = view.center;
       
     },
     mouseDown:function(event){
-      this.cursor.position = event.point.add(5,-5);
+      this.txt.cursor.position = event.point.add(5,-5);
       var layer = new Layer();
-      this.layer.unshift(layer);
-      this.text = this.tProto.clone();
-      this.text.position = event.point;
+      this.layer = this.txt.layer;
+      this.txt.layer.unshift(layer);
+      this.txt.text = this.tProto.clone();
+      this.txt.text.position = event.point;
     },
     mouseDrag:function(event){
     },

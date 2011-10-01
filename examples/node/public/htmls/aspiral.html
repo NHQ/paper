@@ -35,6 +35,19 @@ center = view.center;
     },
     globs:{
       color: new HSBColor(1,1,0,1),
+      gradient: function(from, to){
+        var gradient = new Gradient([['black',],['orange',.13],['yellow',.4],[new HSBColor(240,.7,1,1),.67]], 'radial');
+        var gcolor = new GradientColor(gradient, from, to);
+        return gcolor;
+      },
+      burble: {
+        sides: 10,
+        angle: 90,
+        hi: undefined,
+        ho: undefined
+      },
+      sides: 7,
+      innerRad: undefined,
       active:{},
       last: function(){
         if(!this.active.init){return}
@@ -225,7 +238,141 @@ center = view.center;
         			if(this.add.hitTest(event.point, {stroke:true})){
         			  this.pallette.push(this.pal);
         			}
-        		}
+        		},
+        txt_keyDown:function(event){
+              if (event.key == 'space'){
+                event.preventDefault();
+                this.txt.text.content += ' ';
+                this.txt.cursor.position = this.txt.text.position.add((12*this.txt.text.content.length)+10,-5);
+              }
+              else if (event.key == 'backspace'){
+                event.preventDefault();
+                function backspace (x){
+                  //var layer = this.layer[0];
+                  var c = x.content || null;
+                  var l = c ? c.length : null;            
+                  if (l == 0 || !l){
+                    this.txt.layer[0].children.pop();
+                    //write.text = _.last(write.layer[0].children);
+                    
+                    if (this.txt.layer[0].children.length == 0){
+                      this.txt.layer.shift();
+                    }
+                    this.txt.text = _.last(this.txt.layer[0].children);
+                    backspace.apply(this, [this.txt.text]);
+                  }
+                  else{
+                   this.txt.text.content = c.slice(0, -1);
+                              this.txt.curses.apply(this);
+                   this.txt.cursor.position = this.txt.text.position.add((12*this.txt.text.content.length)+10,-5);
+                  }
+                }backspace.apply(this, [this.txt.text]);
+                //view.draw();
+              }
+              else if (event.key == 'enter'){
+                console.log('enter');
+                var pos = this.txt.text.position.add([0,this.txt.fontSize]);
+                this.txt.cursor.remove();
+                this.txt.init.apply(this, [true, pos])
+              }
+              else {
+                this.txt.text.content += event.character;
+               this.txt.cursor.position = this.txt.text.position.add((12*this.txt.text.content.length)+10,-5);
+              }
+            },
+            txt_mouseDown:function(event){
+              this.txt.cursor.position = event.point.add(4,-5);
+              var layer = new Layer();
+              this.layer = this.txt.layer;
+              this.txt.layer.unshift(layer);
+              this.txt.text = this.tProto.clone();
+              this.txt.text.position = event.point;
+            },
+            lineDown: function(event){
+              if (this.line.segments.length == 0) {
+                      this.line.add(event.point);
+                  }
+
+                  this.line.add(event.point);
+            },
+            lineDrag: function(event){
+              this.line.lastSegment.point = event.point;
+              this.target.setItem.call(this, this.line, false);
+            },
+            circleDrag: function(event){
+              if (event.count > 1){this.circle.remove();}
+              this.circle = new Path.Circle(event.downPoint, event.point.subtract(event.downPoint).length);
+              this.circle.strokeColor = this.globs.color;
+              this.target.setItem.call(this, this.circle, false);
+            },
+            polyDrag: function(event){
+              if (event.count > 1){this.polygon.remove();}
+              var rad = Math.abs(event.point.x - event.downPoint.x)
+              ,   rot = event.point.y - event.downPoint.y;
+              this.polygon = new Path.RegularPolygon(event.downPoint, this.globs.burble.sides, rad);
+              this.polygon.strokeColor = this.globs.color;
+              this.polygon.rotate(rot);
+              this.target.setItem.call(this, this.polygon, false);
+            },
+            arcDrag: function(event){
+              if (event.count > 1){this.arc.remove();}
+              this.arc = new Path();
+              this.arc.add(event.downPoint);
+              this.arc.add(event.point)
+              var mid = this.arc.curves[0].segment2.point.subtract(this.arc.curves[0].segment1.point);
+              var mod = mid.clone();
+              mid.angle -= 90;
+              mod.angle -= 90;
+              mid.length = mod.length = mid.length/3;
+              this.arc.curves[0].handle1 = mid; this.arc.curves[0].handle2 = mod;
+              this.arc.strokeColor = this.globs.color;
+              this.target.setItem.call(this, this.arc, false);
+            },
+            burbleDown : function(event){
+          //    this.burble = new Path.RegularPolygon(event.point, this.globs.burble.sides, 0);
+          //    this.burble.strokeColor = this.globs.color.clone();
+            },
+            burbleDrag : function(event, peter){
+              console.log(peter);
+              if (event.count > 1){this.burble.remove();}
+              var rad = Math.abs(event.point.x - event.downPoint.x)
+              ,   rot = event.point.y - event.downPoint.y;
+              this.burble = new Path.RegularPolygon(event.downPoint, this.globs.burble.sides, rad);
+              //this.burble.insertAbove(project.layers[0].children[0]);
+              _.each(this.burble.curves, function(curve, index){
+                  var midpoint = curve.segment2.point.subtract(curve.segment1.point);
+                  midpoint.angle -= this.globs.burble.angle;
+                  curve.handle1 = midpoint.normalize(rad*.5); // the normalize is the variable w/ radius
+                  curve.handle2 = midpoint.normalize(rad*.5); // call 'em curves gui head
+              }, this)
+              this.burble.rotate(rot);
+              this.burble.strokeColor = this.globs.gradient(event.downPoint,this.burble.bounds.bottomRight);
+               this.target.setItem.call(this, this.burble, false);
+              //this.burble.style = styles.apply(burble, [true])
+            },
+            starDown : function(event){
+            //  this.burble = new Path.RegularPolygon(event.point, this.globs.burble.sides, 0);
+            //  this.burble.strokeColor = this.globs.color.clone();
+            },
+            starDrag : function(event){
+              if (event.count > 1){this.star.remove();}
+              var rad = Math.abs(event.point.x - event.downPoint.x)
+              ,   rot = event.point.y - event.downPoint.y;
+              
+              this.star = new Path.RegularPolygon(event.downPoint,10,rad)
+                  _.each(this.star.segments, function(seg, index){
+                    if (index%2) {var vector = event.downPoint.subtract(seg.point)
+                     seg.point = seg.point.add(vector.normalize(rad*-2))} // normalize = inner radius
+                    else {
+                      return
+                    }
+                   // vector.angle += 360/10
+                  })
+                  this.star.rotate(rot);
+                  this.star.strokeColor = this.globs.color;
+                //  this.star.fillColor = this.globs.gradient(event.downPoint,event.downPoint.add([this.star.bounds.width/2,0]))
+                                this.target.setItem.call(this, this.star, false);
+            }
     },
     funs: {
       select: function(item, fully){
@@ -286,6 +433,22 @@ center = view.center;
         }
       }
     },
+    keyDown: function(event){
+      var guments = arguments;
+      return function(event){  
+        for (var i = 0; i<guments.length;++i){
+          guments[i].call(gg, event) 
+        }
+      }
+      },
+    keyUp:   function(event){
+        var guments = arguments;
+        return function(event){  
+          for (var i = 0; i<guments.length;++i){
+            guments[i].call(gg, event) 
+          }
+        }
+        },
     colorPicker : {
     		init: function(){
     			this.colorPicker.Selector.apply(this);
@@ -410,16 +573,128 @@ center = view.center;
     	    this.pallette.swathii.remove();
     	  },
 	  },
-    shapes: function(){
-      
+    shapes: {
+      line: function(){
+        this.globs.active = this.shapes.line;
+        this.line = new Path();
+        this.line.strokeColor = this.globs.color;
+        this.tool.onMouseDown = this.mouseDown.call(this, this.events.lineDown);
+        this.tool.onMouseUp = null;
+        this.tool.onMouseDrag = this.mouseDrag.call(this, this.events.lineDrag);
+        this.tool.onKeyDown = null;
+        this.tool.onKeyDown = null;
+      },
+      circle: function(){
+        this.globs.active = this.shapes.circle;
+        this.tool.onMouseDown = null;
+        this.tool.onMouseUp = null;
+        this.tool.onMouseDrag = this.mouseDrag.call(this, this.events.circleDrag);
+        this.tool.onKeyDown = null;
+        this.tool.onKeyDown = null;
+      },
+      arc: function(){
+        this.globs.active = this.shapes.arc;
+        this.tool.onMouseDown = null;
+        this.tool.onMouseUp = null;
+        this.tool.onMouseDrag = this.mouseDrag.call(this, this.events.arcDrag);
+        this.tool.onKeyDown = null;
+        this.tool.onKeyDown = null;
+      },
+      polygon: function(){
+        this.globs.active = this.shapes.polygon;
+        this.tool.onMouseDown = null;
+        this.tool.onMouseUp = null;
+        this.tool.onMouseDrag = this.mouseDrag.call(this, this.events.polyDrag);
+        this.tool.onKeyDown = null;
+        this.tool.onKeyDown = null;
+      },
+      star: function(){
+        this.globs.active = this.shapes.star;
+        this.tool.onMouseDown = null;
+        this.tool.onMouseUp = null;
+        this.tool.onMouseDrag = this.mouseDrag.call(this, this.events.starDrag);
+        this.tool.onKeyDown = null;
+        this.tool.onKeyDown = null;
+      },
+      burst: function(){
+        this.globs.active = this.shapes.burst;
+        this.tool.onMouseDown = null;
+        this.tool.onMouseUp = null;
+        this.tool.onMouseDrag = this.mouseDrag.call(this, this.events.burbleDrag);
+        this.tool.onKeyDown = null;
+        this.tool.onKeyDown = null;
+      }
     },
     draw: {
         init: function(){
           this.globs.active = this.draw;
           this.tool.onMouseDown = this.mouseDown.call(this, this.events.draw);
           this.tool.onMouseUp = this.mouseUp.call(this, this.events.drawDrop);
-          this.tool.onMouseDrag = this.mouseDrag.call(this, this.events.drawDrag)
+          this.tool.onMouseDrag = this.mouseDrag.call(this, this.events.drawDrag);
+          this.tool.onKeyDown = null;
+          this.tool.onKeyDown = null;
         }
+    },
+    txt:{
+      init: function(check, pos){
+        this.globs.active = this.txt;
+        var pos = pos;
+        //_.bindAll(this);
+        this.txt.settings.apply(this);
+        this.txt.curses.apply(this);
+        if (!check && !this.txt.layer){
+          console.log('yup');
+          this.txt.layer = this.txt.layer || [];
+          } 
+        if(check && this.txt.layer[0].children){
+           _.each(this.txt.layer[0].children, function(l){l.fillColor = this.globs.color.clone()}, this)
+        }
+        this.txt.writer.apply(this, [pos]);
+        this.tool.onMouseDown = this.mouseDown.call(this, this.events.txt_mouseDown);
+        this.tool.onMouseUp = this.mouseUp();
+        this.tool.onMouseDrag = this.mouseDrag();
+        this.tool.onKeyDown = this.keyDown.call(this, this.events.txt_keyDown);
+  			this.tool.onKeyUp = this.keyUp();
+  			view.draw()
+      },
+      curses: function(){
+        if (this.txt.cursor){this.txt.cursor.remove();this.txt.cursor = null;this.txt.curses.apply(this)}
+        else
+        this.txt.cursor = new Path.Rectangle(-10,-10,this.txt.fontSize-2, 22);
+        this.txt.cursor.fillColor = this.globs.color;
+        if (this.txt.text){
+          this.txt.cursor.position = this.txt.text.position.add((12*this.txt.text.content.length)+10,-5);
+        }
+      },
+      remove:function(){
+        this.txt.cursor.remove();
+      },
+      settings:function(){
+        this.txt.font = 'Courier';
+        this.txt.fontSize = 15;
+        this.txt.color = this.globs.color.clone();
+        this.txt.justify = 'left';
+        this.txt.lineSpacing = 0;
+        this.txt.kerning = 0;
+      },
+      writer: function(pos){          
+        this.tProto = new PointText();
+        this.tProto.paragraphStyle.justification = this.txt.justify;
+        this.tProto.characterStyle.fontSize = this.txt.fontSize;
+        this.tProto.characterStyle.font = this.txt.font;
+        this.tProto.fillColor = this.txt.color;
+        if (pos && typeof pos == 'object') {
+          //this.layer[0].fillColor = this.color;
+          //this.text.fillColor = this.color;
+          this.txt.text = this.tProto.clone();
+          this.txt.text.position = pos;
+          this.txt.cursor.position = this.txt.text.position.add((12*this.txt.text.content.length)+10,-5);
+          this.txt.cursor.fillColor = this.txt.color;
+        }  
+        if (this.text){
+          this.text.fillColor = this.txt.color
+        }
+      }
     },
     spiral: {
       go: function(e){
@@ -440,6 +715,7 @@ center = view.center;
           if(spath.closed){
             g = q = p;
             this.target.center = p;
+            qp = q.subtract(j)
           }
 
           for (i = 1; i < spath.segments.length - 1; ++i){
@@ -475,6 +751,7 @@ center = view.center;
           this.target.stud.remove();
           this.target.stud = null;
           //this.target.item.simplify();
+          this.target.item.strokeColor = this.globs.gradient( this.target.item.bounds.center,  this.target.item.bounds.bottomRight )
           view.draw();
         }
     }
@@ -494,7 +771,7 @@ function update(x){
     background:#999;
     cursor: crosshair;
   }
-  ul {list-style-type:none;display:none;}
+  ul {list-style-type:none;display:block;}
   #box{
     z-index:3;
     background:red;
@@ -552,22 +829,25 @@ function update(x){
     <a href="#">shapes</a>
       <ul>
         <li>
-          <a href="#">line</a>
+          <a href="javascript:gg.shapes.line.apply(gg)">line</a>
         </li>
         <li>
-          <a href="#">Arc</a>
+          <a href="javascript:gg.shapes.arc.apply(gg)">Arc</a>
         </li>
         <li>
-          <a href="#">polygons</a>
+          <a href="javascript:gg.shapes.polygon.apply(gg)">polygons</a>
         </li>
         <li>
-          <a href="#">circles</a>
+          <a href="javascript:gg.shapes.circle.apply(gg)">circles</a>
         </li>
         <li>
-          <a href="#">bursts</a>
+          <a href="javascript:gg.shapes.star.apply(gg)">star-burst</a>
+        </li>
+        <li>
+          <a href="javascript:gg.shapes.burst.apply(gg)">burbles</a>
         </li>
       </ul>
-    <a href="#">txt</a>
+    <a href="javascript:gg.txt.init.apply(gg)">txt</a>
     <a href="javascript:gg.colorPicker.init.apply(gg);">pallette</a>
     <a href="#">select</a>
     <a href="#">undo</a>
