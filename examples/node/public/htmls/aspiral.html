@@ -759,6 +759,7 @@ center = view.center;
   gg.init();
 };
 function update(x){
+  console.log(arguments)
   gg.spiral.angle = parseFloat(document.getElementById('angle').value);
   gg.spiral.mx = parseFloat(document.getElementById('mx').value);
   gg.spiral.reps = parseFloat(document.getElementById('reps').value);
@@ -816,7 +817,7 @@ function update(x){
       Angle: <input type="text" id="angle" value="117"></input>
       Growth Multiplier: <input type="text" id="mx" value="1.009"></input>
       Reps: <input type="text" id="reps" value="45"></input>
-      <input type="submit" value="Draw Spiral" onclick="javascript:update(evt)"></input>
+      <input type="submit" value="Draw Spiral" onclick="update(event)"></input>
 
   </div>
   <div id="options">

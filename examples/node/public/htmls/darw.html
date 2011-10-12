@@ -80,7 +80,7 @@ center = view.center;
                                   burble.style = styles.apply(burble, [true])
               var star = new Path.RegularPolygon([35, 230],10,25)
                   _.each(star.segments, function(seg, index){
-                    if (index%2) {var vector = event.downPoint.subtract(seg.point)
+                    if (index%2) {var vector = new Point([35,230]).subtract(seg.point)
                      seg.point = seg.point.add(vector.normalize(15))}
                     else {
                       return
