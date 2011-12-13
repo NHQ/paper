@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<title>pie.chart</title>
+	<script type="text/javascript" src="../javascripts/paper.js"></script>
+	<script type="text/javascript" src="../javascripts/underscore-min.js"></script>
+	<script type="text/javascript" src="../javascripts/store.js"></script>
+	<script type="text/javascript">
+paper.install(window);
+window.onload = function(){
+colz = store.get('colors');
+sinceLast = new Date().getTime(); 
+paper.setup('canvas');
+center = view.center;
+
+var data = {
+  "data": [
+    {
+      "id": "110297092351369/insights/page_fans_gender/lifetime", 
+      "name": "page_fans_gender", 
+      "period": "lifetime", 
+      "values": [
+        {
+          "value": {
+            "M": 500000, 
+            "F": 600000, 
+            "U": 16
+          }, 
+          "end_time": "2011-12-08T08:00:00+0000"
+        }, 
+        {
+          "value": {
+            "M": 54, 
+            "F": 26, 
+            "U": 1
+          }, 
+          "end_time": "2011-12-09T08:00:00+0000"
+        }, 
+        {
+          "value": {
+            "M": 54, 
+            "F": 27, 
+            "U": 1
+          }, 
+          "end_time": "2011-12-10T08:00:00+0000"
+        }
+      ], 
+      "description": "Lifetime Gender of people who like your Page (Total Count)"
+    }
+  ], 
+  "paging": {
+    "previous": "https://graph.facebook.com/110297092351369/insights/page_fans_gender?format=json&since=1323032474&until=1323291674", 
+    "next": "https://graph.facebook.com/110297092351369/insights/page_fans_gender?format=json&since=1323550874&until=1323810074"
+  }
+}
+
+var page_fans_gender = function (data){
+
+	/**
+	NOTE: if trannies is so small as to be insignificant, don't report it!
+	**/
+	
+	this.data = data.data[0].values[0].value
+	this.total = this.data.M + this.data.F + (this.data.U ? this.data.U : 0)
+	this.circle = new Path.Circle(view.center, 200);
+	this.circle.strokeColor = 'red';
+	this.circum = this.circle.length
+	,	this.Mr = this.data.M / this.total
+	,	this.Ms = this.data.F / this.total
+	,	this.trannies = (this.data.U ? this.data.U : 0) / this.total;	
+	var males = new Path();
+		males.add(this.circle.position);
+		males.lineTo(this.circle.getPointAt(0))
+		;males.arcTo(this.circle.getPointAt(1),this.circle.getPointAt(this.Mr * this.circum));
+		males.closePath()
+		males.strokeColor='blue';
+		males.fillColor = new HSBColor(220,.6,1,1)
+	var femmes = new Path()
+		femmes.add(this.circle.position);
+		femmes.lineTo(this.circle.getPointAt( this.Mr * this.circum ));
+		femmes.arcTo(this.circle.getPointAt((this.Mr * this.circum) + 1 ),this.circle.getPointAt(this.Mr * this.circum + (this.Ms * this.circum)));
+		femmes.closePath()
+		femmes.strokeColor='red'; // stroke dah femmes :D
+		femmes.fillColor = new HSBColor(340,.6,1,1	)
+	var trannies = new Path()
+		trannies.add(this.circle.position);
+		trannies.lineTo(this.circle.getPointAt( (this.Ms * this.circum )+(this.Mr * this.circum )));
+		trannies.arcTo(this.circle.getPointAt( (this.Ms * this.circum )+(this.Mr * this.circum ) + (this.trannies * 10) ),this.circle.getPointAt(0));
+//		trannies.closePath()
+		trannies.strokeColor='yellow'; // be careful!
+		trannies.fillColor = new HSBColor(88,.5,1,.5)
+	
+	
+	
+	console.log(this)
+}
+var t = new page_fans_gender(data)
+
+
+//notes: with the exception of a lil spaghetting, *this* nearly always refers to the parent object gg
+  
+  gg = Object.create(null);
+  gg = {
+    init: function(){
+      _.bindAll(this);
+      this.groupAll = new Group();
+			this.tool = new Tool();
+			this.tool.onMouseDrag = this.mouseDrag();
+		  	this.tool.onMouseDown = this.mouseDown();
+			this.tool.onMouseUp = this.mouseUp();
+			this.tool.activate();
+			this.tool.minDistance = 0;
+			view.draw()
+    },
+    globs:{
+      color: new HSBColor(1,1,0,1),
+      active:{},
+      // run the last active drawing tool's.init() (after color pickering)
+      last: function(){
+        if(!this.active.init){return}
+        else
+  	    this.active.init.apply(gg, [true, false]);
+  	  }
+    },
+    style:{
+      strokeColor:"",
+      strokeWidth:"",
+      dashArray:[],
+      fillColor:""
+    },
+    target: {
+      // setting a target item or segment for selecting and manipulating 
+      item: null,
+      setItem: function(item, bool){
+        var i = this.target.item || null;
+        if(i){
+          if(item._id != i._id)
+          i.selected = false;
+        //  gg.globs.selectRect.remove();
+        //  gg.globs.selectDot.remove();
+        }
+        item.fullySelected = bool;
+        this.target.item = item;
+      },
+      setSegment: function(item){
+        this.target.segment = item;
+      }
+    },
+    events: {
+      // atomic event coordination depending on tool being used. These are passed to one of this.mouseUp(), this.mouseDown(), this.mouseDrag, 
+      // to which paper.js's tool.onMouseUp etc are set (located at this.tool)
+    },
+    funs: {
+    },
+    remove:function(){
+      // currenly obsolete
+      this.layer.remove();
+    },
+    mouseDown:function(){
+      // the following 3 functions set the papers tools. They are called to change tool event handling per user selection
+      var guments = arguments;
+      return function(event){        
+        for (var i = 0; i<guments.length;++i){
+          guments[i].call(gg, event) 
+        }
+      }
+    },
+    mouseUp:function(event){
+      var guments = arguments;
+      return function(event){  
+        for (var i = 0; i<guments.length;++i){
+          guments[i].call(gg, event) 
+        }
+      }
+    },
+    mouseDrag:function(event){
+      var guments = arguments;
+      return function(event){  
+        for (var i = 0; i<guments.length;++i){
+          guments[i].call(gg, event) 
+        }
+      }
+    }
+  }
+  gg.init();
+};
+	</script>
+  <style>
+  body, canvas, .canvas{
+    background:#999;
+    cursor: crosshair;
+  }
+  ul {list-style-type:none;display:none;}
+  #box{
+    z-index:3;
+    background:red;
+    height:76px;
+    width:300px;
+    display:none;
+    position:absolute;
+    top:10px;
+  }
+  #controls{
+    width:100%;
+    height:40px;
+    position:fixed;
+    bottom:0;
+    left:0;
+    background:#c1c2c3;
+    z-index:1000;
+    text-align:center;
+  }
+  #options{
+    height:100%;
+    width:40px;
+    position:fixed;
+    top:0;
+    left:0;
+    background:#c1c2c3;
+    z-index:1000;
+    text-align:left;
+  }
+  #tools a{
+    font-size:20px;
+    margin: 0 30px
+  }
+  </style>
+
+</head>
+<body>
+	<canvas id="canvas" resize style="background:white"></canvas>
+</body>
+</html>
