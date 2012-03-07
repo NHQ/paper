@@ -30,9 +30,7 @@ app.configure('production', function(){
 
 
 app.get('/', function(req, res){
-	res.render('index', {
-    title: 'Express'
-  });
+	res.redirect('htmls/vector.graphics.html');
 });
 
 app.listen(3000);
